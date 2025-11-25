@@ -1,0 +1,104 @@
+{
+  "name": "spotify-vscode",
+  "displayName": "Spotify Integration",
+  "description": "Control Spotify playback and view friends' activity from VS Code",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "spotify.authenticate",
+        "title": "Authenticate with Spotify",
+        "category": "Spotify"
+      },
+      {
+        "command": "spotify.play",
+        "title": "Play",
+        "category": "Spotify"
+      },
+      {
+        "command": "spotify.pause",
+        "title": "Pause",
+        "category": "Spotify"
+      },
+      {
+        "command": "spotify.next",
+        "title": "Next Track",
+        "category": "Spotify"
+      },
+      {
+        "command": "spotify.previous",
+        "title": "Previous Track",
+        "category": "Spotify"
+      },
+      {
+        "command": "spotify.showCurrentTrack",
+        "title": "Show Current Track",
+        "category": "Spotify"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "spotify.play",
+        "key": "ctrl+shift+p",
+        "mac": "cmd+shift+p"
+      },
+      {
+        "command": "spotify.pause",
+        "key": "ctrl+shift+space",
+        "mac": "cmd+shift+space"
+      },
+      {
+        "command": "spotify.next",
+        "key": "ctrl+shift+right",
+        "mac": "cmd+shift+right"
+      },
+      {
+        "command": "spotify.previous",
+        "key": "ctrl+shift+left",
+        "mac": "cmd+shift+left"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "spotifyFriends",
+          "name": "Spotify Friends",
+          "when": "spotify:authenticated"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Spotify",
+      "properties": {
+        "spotify.clientId": {
+          "type": "string",
+          "description": "Spotify Client ID"
+        },
+        "spotify.refreshInterval": {
+          "type": "number",
+          "default": 5000,
+          "description": "Refresh interval for current track (ms)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

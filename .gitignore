@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build output
+out/
+*.vsix
+
+# Environment variables and secrets
+.env
+.env.local
+*.key
+*.pem
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files with secrets (if needed, remove from tracking)
+# test/spot.html
