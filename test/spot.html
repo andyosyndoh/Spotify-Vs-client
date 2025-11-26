@@ -290,7 +290,8 @@
 
         // Spotify Configuration (MUST be replaced with your own)
         // >>> PASTE YOUR SPOTIFY CLIENT ID HERE <<<
-        const SPOTIFY_CLIENT_ID = 'YOUR_SPOTIFY_CLIENT_ID_HERE'; // <-- REPLACE THIS
+        // Load from environment or use placeholder
+        const SPOTIFY_CLIENT_ID = '__SPOTIFY_CLIENT_ID__'; // Will be replaced by build script
         // Common redirect URIs - match exactly what's in your Spotify Dashboard:
         // For Live Server (default): http://127.0.0.1:5500/test/spot.html
         // For file:// protocol: use http://127.0.0.1:5500/test/spot.html and run a server
@@ -536,6 +537,7 @@
                     playPauseIcon.classList.remove('fa-pause');
                     playPauseIcon.classList.add('fa-play');
                     document.getElementById('play-pause-button').dataset.isPlaying = 'false';
+                    document.title = 'Spotify Extension Core Simulator';
                     stopProgressUpdates();
                     return;
                 }
@@ -548,6 +550,11 @@
                 const progressMs = data.progress_ms || 0;
                 const durationMs = data.item.duration_ms;
                 const isExplicit = data.item.explicit;
+
+                // Update page title with currently playing song
+                document.title = isPlaying 
+                    ? `▶️ ${songName} - ${artistName}`
+                    : `⏸️ ${songName} - ${artistName}`;
 
                 // Update local progress tracking
                 localProgressMs = progressMs;
@@ -715,8 +722,8 @@
 
         // Step 1: Redirect to Spotify login with PKCE
         async function handleLogin() {
-            if (SPOTIFY_CLIENT_ID === 'YOUR_SPOTIFY_CLIENT_ID_HERE') {
-                displayError("ERROR: Please replace 'YOUR_SPOTIFY_CLIENT_ID_HERE' with your actual Spotify Client ID.");
+            if (!SPOTIFY_CLIENT_ID || SPOTIFY_CLIENT_ID === '__SPOTIFY_CLIENT_ID__') {
+                displayError("ERROR: Spotify Client ID not configured. Please set SPOTIFY_CLIENT_ID in .env file.");
                 return;
             }
 

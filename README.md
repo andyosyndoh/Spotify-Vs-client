@@ -2,6 +2,44 @@
 
 Control Spotify playback and view friends' activity directly from VS Code.
 
+## Setup
+
+### 1. Create Spotify App
+1. Go to https://developer.spotify.com/dashboard
+2. Create a new app
+3. Add redirect URI: `http://127.0.0.1:5500/test/spot.html`
+4. Copy your Client ID
+
+### 2. Configure Environment
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Edit `.env` and add your Spotify Client ID:
+   ```
+   SPOTIFY_CLIENT_ID=your_actual_client_id_here
+   ```
+
+### 3. Run Development Simulator
+```bash
+npm run dev
+```
+
+This will generate `test/spot-dev.html` with your client ID. Open it with Live Server in VS Code.
+
+## Development
+
+- **`npm run compile`** - Compile TypeScript extension code
+- **`npm run watch`** - Watch and compile TypeScript  
+- **`npm run build:html`** - Build HTML simulator with env variables
+- **`npm run dev`** - Build and show instructions to run simulator
+
+## Security
+
+- `.env` file is git-ignored (contains your secret client ID)
+- `test/spot.html` is the template (safe to commit)
+- `test/spot-dev.html` is generated (git-ignored, contains secrets)
+
 ## Features
 
 ### Core Functionality

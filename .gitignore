@@ -8,6 +8,9 @@ out/
 
 # Environment variables and secrets
 .env
+
+# Development files with secrets
+test/spot-dev.html
 .env.local
 *.key
 *.pem
