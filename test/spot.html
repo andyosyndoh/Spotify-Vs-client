@@ -37,6 +37,14 @@
             position: relative;
         }
 
+        body.fullscreen-mode {
+            cursor: none;
+        }
+
+        body.fullscreen-mode.show-controls {
+            cursor: default;
+        }
+
         .background-image {
             position: fixed;
             top: 0;
@@ -354,6 +362,82 @@
             display: none;
         }
 
+        body.fullscreen-mode.show-controls .header {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        body.fullscreen-mode .header {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 300;
+        }
+
+        body.fullscreen-mode .header .refresh-button,
+        body.fullscreen-mode .header .fullscreen-button,
+        body.fullscreen-mode .header .logout-button {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Fullscreen Controls Overlay */
+        .fullscreen-controls {
+            display: none;
+            position: fixed;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+            z-index: 250;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        body.fullscreen-mode .fullscreen-controls {
+            display: flex;
+        }
+
+        body.fullscreen-mode.show-controls .fullscreen-controls {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        body.fullscreen-mode .fullscreen-controls .controls-bottom {
+            display: flex;
+            padding-bottom: 0;
+        }
+
+        body.fullscreen-mode .fullscreen-controls .control-button {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        body.fullscreen-mode .fullscreen-controls .control-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.15);
+        }
+
+        body.fullscreen-mode .fullscreen-controls .control-button.play-pause {
+            background: rgba(29, 185, 84, 0.9);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        body.fullscreen-mode .fullscreen-controls .control-button.play-pause:hover {
+            background: rgba(30, 215, 96, 0.95);
+            box-shadow: 0 8px 40px rgba(29, 185, 84, 0.6);
+        }
+
         /* Fullscreen Bottom Left Info */
         .fullscreen-info {
             display: none;
@@ -519,6 +603,21 @@
                 <div class="fullscreen-track-artist" id="fullscreen-artist-name">...</div>
             </div>
         </div>
+
+        <!-- Fullscreen Playback Controls (Center) -->
+        <div class="fullscreen-controls" id="fullscreen-controls">
+            <div class="controls-bottom">
+                <button class="control-button" onclick="controlPlayback('previous')">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button id="fullscreen-play-pause-button" class="control-button play-pause" onclick="togglePlayback()">
+                    <i class="fas fa-play" id="fullscreen-play-pause-icon"></i>
+                </button>
+                <button class="control-button" onclick="controlPlayback('next')">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase Imports for persistent storage (simulation only) -->
@@ -559,6 +658,10 @@
         // Artist image tracking
         let currentArtistId = null;
         let currentArtistImage = null;
+
+        // Cursor tracking for fullscreen controls
+        let cursorTimeout = null;
+        let isFullscreenMode = false;
 
         // Expose functions to global scope
         window.handleLogin = handleLogin;
@@ -863,13 +966,29 @@
                 if (isPlaying) {
                     playPauseIcon.classList.remove('fa-play');
                     playPauseIcon.classList.add('fa-pause');
+                    // Update fullscreen controls icon
+                    const fullscreenIcon = document.getElementById('fullscreen-play-pause-icon');
+                    if (fullscreenIcon) {
+                        fullscreenIcon.classList.remove('fa-play');
+                        fullscreenIcon.classList.add('fa-pause');
+                    }
                     startProgressUpdates();
                 } else {
                     playPauseIcon.classList.remove('fa-pause');
                     playPauseIcon.classList.add('fa-play');
+                    // Update fullscreen controls icon
+                    const fullscreenIcon = document.getElementById('fullscreen-play-pause-icon');
+                    if (fullscreenIcon) {
+                        fullscreenIcon.classList.remove('fa-pause');
+                        fullscreenIcon.classList.add('fa-play');
+                    }
                     stopProgressUpdates();
                 }
                 document.getElementById('play-pause-button').dataset.isPlaying = isPlaying ? 'true' : 'false';
+                const fullscreenButton = document.getElementById('fullscreen-play-pause-button');
+                if (fullscreenButton) {
+                    fullscreenButton.dataset.isPlaying = isPlaying ? 'true' : 'false';
+                }
 
                 document.getElementById('status-message').textContent = `Now controlling: ${songName} by ${artistName}`;
 
@@ -1203,12 +1322,17 @@
                 fullscreenIcon.classList.remove('fa-expand');
                 fullscreenIcon.classList.add('fa-compress');
                 document.body.classList.add('fullscreen-mode');
+                isFullscreenMode = true;
                 await updateFullscreenBackground();
                 requestWakeLock();
+                // Show controls initially then hide after 3 seconds
+                showFullscreenControls();
+                hideFullscreenControlsAfterDelay();
             } else {
                 fullscreenIcon.classList.remove('fa-compress');
                 fullscreenIcon.classList.add('fa-expand');
                 document.body.classList.remove('fullscreen-mode');
+                isFullscreenMode = false;
                 // Restore album art background
                 const albumArt = document.getElementById('album-art').src;
                 if (albumArt) {
@@ -1217,6 +1341,40 @@
                 releaseWakeLock();
             }
         });
+
+        // Track cursor movement in fullscreen
+        document.addEventListener('mousemove', handleCursorMovement);
+        document.addEventListener('mouseenter', handleCursorMovement);
+
+        // Handle cursor movement
+        function handleCursorMovement() {
+            if (!isFullscreenMode) return;
+            
+            showFullscreenControls();
+            hideFullscreenControlsAfterDelay();
+        }
+
+        // Show fullscreen controls
+        function showFullscreenControls() {
+            document.body.classList.add('show-controls');
+        }
+
+        // Hide fullscreen controls
+        function hideFullscreenControls() {
+            document.body.classList.remove('show-controls');
+        }
+
+        // Hide controls after delay
+        function hideFullscreenControlsAfterDelay() {
+            if (cursorTimeout) {
+                clearTimeout(cursorTimeout);
+            }
+            cursorTimeout = setTimeout(() => {
+                if (isFullscreenMode) {
+                    hideFullscreenControls();
+                }
+            }, 3000); // Hide after 3 seconds of inactivity
+        }
 
         // --- NEW FEATURES ---
 
