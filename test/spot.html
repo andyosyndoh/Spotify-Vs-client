@@ -276,6 +276,194 @@
         .fade-in {
             animation: fadeIn 0.5s ease;
         }
+
+        /* Explicit Badge */
+        .explicit-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        /* Queue Panel */
+        .queue-panel {
+            position: fixed;
+            right: 20px;
+            top: 100px;
+            width: 300px;
+            max-height: 60vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .queue-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1DB954;
+        }
+
+        .queue-section {
+            margin-bottom: 20px;
+        }
+
+        .queue-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .queue-item {
+            display: flex;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .queue-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .queue-item.current {
+            background: rgba(29, 185, 84, 0.2);
+            border-left: 3px solid #1DB954;
+        }
+
+        .queue-item-art {
+            width: 45px;
+            height: 45px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .queue-item-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .queue-item-name {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .queue-item-artist {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Audio Visualizer */
+        .visualizer-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
+            padding: 0 20px 20px;
+            z-index: 50;
+        }
+
+        .visualizer-bar {
+            width: 4px;
+            background: linear-gradient(to top, #1DB954, #1ed760);
+            border-radius: 2px;
+            transition: height 0.1s ease;
+            opacity: 0.8;
+        }
+
+        /* QR Code */
+        .qr-container {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+
+        .qr-title {
+            color: #000;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        #qr-code {
+            width: 150px;
+            height: 150px;
+        }
+
+        #qr-code img {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Scrollbar styling */
+        .queue-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .queue-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .queue-panel::-webkit-scrollbar-thumb {
+            background: rgba(29, 185, 84, 0.6);
+            border-radius: 3px;
+        }
+
+        .queue-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(29, 185, 84, 0.8);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .queue-panel {
+                width: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .queue-panel,
+            .qr-container {
+                display: none;
+            }
+            
+            .album-art-main {
+                width: 300px;
+                height: 300px;
+            }
+        }
     </style>
 </head>
 
@@ -308,6 +496,7 @@
         <div id="player-section" class="hidden">
             <div class="main-content">
                 <div class="album-art-main" id="album-art-main">
+                    <div class="explicit-badge hidden" id="explicit-badge">E</div>
                     <img id="album-art" src="" alt="Album Art">
                     <div class="progress-overlay">
                         <div class="progress-fill" id="progress-fill"></div>
@@ -334,6 +523,28 @@
 
         <div id="error-box" class="error-box hidden">
             <strong>Error:</strong> <span id="error-message"></span>
+        </div>
+
+        <!-- Queue Panel -->
+        <div class="queue-panel hidden" id="queue-panel">
+            <div class="queue-title">Queue</div>
+            <div class="queue-section" id="previous-section">
+                <div class="queue-section-title">Previously Played</div>
+                <div id="previous-tracks"></div>
+            </div>
+            <div class="queue-section" id="upcoming-section">
+                <div class="queue-section-title">Up Next</div>
+                <div id="upcoming-tracks"></div>
+            </div>
+        </div>
+
+        <!-- Audio Visualizer -->
+        <div class="visualizer-container hidden" id="visualizer-container"></div>
+
+        <!-- QR Code -->
+        <div class="qr-container hidden" id="qr-container">
+            <div class="qr-title">Scan to Play</div>
+            <div id="qr-code"></div>
         </div>
     </div>
 
@@ -614,6 +825,7 @@
                 const progressMs = data.progress_ms || 0;
                 const durationMs = data.item.duration_ms;
                 const isExplicit = data.item.explicit;
+                const trackUri = data.item.uri;
 
                 // Update page title with currently playing song
                 document.title = isPlaying 
@@ -633,6 +845,9 @@
                 } else {
                     albumNameEl.textContent = '';
                 }
+
+                // Update explicit badge
+                updateExplicitBadge(isExplicit);
 
                 // Display album art if available
                 if (albumArt) {
@@ -664,6 +879,10 @@
                 document.getElementById('play-pause-button').dataset.isPlaying = isPlaying ? 'true' : 'false';
 
                 document.getElementById('status-message').textContent = `Now controlling: ${songName} by ${artistName}`;
+
+                // Update new features
+                generateQRCode(trackUri);
+                updateQueue();
 
             } catch (error) {
                 displayError("Failed to get track: " + error.message);
@@ -866,6 +1085,9 @@
                 document.getElementById('refresh-btn').style.display = 'flex';
                 document.getElementById('error-box').classList.add('hidden');
 
+                // Initialize visualizer
+                initializeVisualizer();
+
                 await getCurrentlyPlaying();
 
                 // Optional: Set up an interval to refresh the current track automatically (like a real extension status bar)
@@ -955,6 +1177,108 @@
                 releaseWakeLock();
             }
         });
+
+        // --- NEW FEATURES ---
+
+        // Generate QR Code for Spotify track
+        async function generateQRCode(trackUri) {
+            const qrContainer = document.getElementById('qr-code');
+            const spotifyUrl = `https://open.spotify.com/track/${trackUri.split(':')[2]}`;
+            
+            // Using Google Charts API for QR code generation
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(spotifyUrl)}`;
+            qrContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code">`;
+            
+            document.getElementById('qr-container').classList.remove('hidden');
+        }
+
+        // Update Queue (Previously Played + Up Next)
+        async function updateQueue() {
+            try {
+                // Get recently played
+                const recentData = await spotifyApiCall('/me/player/recently-played?limit=3');
+                const previousTracks = document.getElementById('previous-tracks');
+                
+                if (recentData && recentData.items) {
+                    previousTracks.innerHTML = recentData.items.map(item => `
+                        <div class="queue-item">
+                            <img src="${item.track.album.images[2]?.url || ''}" class="queue-item-art" alt="">
+                            <div class="queue-item-info">
+                                <div class="queue-item-name">${item.track.name}</div>
+                                <div class="queue-item-artist">${item.track.artists.map(a => a.name).join(', ')}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Get queue (upcoming tracks)
+                const queueData = await spotifyApiCall('/me/player/queue');
+                const upcomingTracks = document.getElementById('upcoming-tracks');
+                
+                if (queueData && queueData.queue) {
+                    const nextTracks = queueData.queue.slice(0, 5);
+                    upcomingTracks.innerHTML = nextTracks.map((track, index) => `
+                        <div class="queue-item ${index === 0 ? 'current' : ''}">
+                            <img src="${track.album.images[2]?.url || ''}" class="queue-item-art" alt="">
+                            <div class="queue-item-info">
+                                <div class="queue-item-name">${track.name}</div>
+                                <div class="queue-item-artist">${track.artists.map(a => a.name).join(', ')}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                document.getElementById('queue-panel').classList.remove('hidden');
+            } catch (error) {
+                console.error('Failed to update queue:', error);
+            }
+        }
+
+        // Initialize Audio Visualizer
+        function initializeVisualizer() {
+            const container = document.getElementById('visualizer-container');
+            const numBars = 60;
+            
+            // Create visualizer bars
+            for (let i = 0; i < numBars; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'visualizer-bar';
+                bar.style.height = '10px';
+                container.appendChild(bar);
+            }
+            
+            container.classList.remove('hidden');
+            animateVisualizer();
+        }
+
+        // Animate visualizer bars
+        function animateVisualizer() {
+            const bars = document.querySelectorAll('.visualizer-bar');
+            
+            function updateBars() {
+                bars.forEach((bar, index) => {
+                    // Create a wave-like pattern with random variation
+                    const wave = Math.sin((Date.now() / 200) + (index / 5)) * 30 + 30;
+                    const random = Math.random() * 20;
+                    const height = wave + random;
+                    bar.style.height = `${height}px`;
+                });
+                
+                requestAnimationFrame(updateBars);
+            }
+            
+            updateBars();
+        }
+
+        // Show/hide explicit badge
+        function updateExplicitBadge(isExplicit) {
+            const badge = document.getElementById('explicit-badge');
+            if (isExplicit) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
 
         // Start the application
         window.onload = initializeFirebase;
