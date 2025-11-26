@@ -56,6 +56,8 @@
             filter: blur(20px) brightness(0.3);
             z-index: -1;
             transition: all 0.8s ease;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
 
         .cont {
@@ -354,6 +356,8 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            image-rendering: high-quality;
+            image-rendering: -webkit-optimize-contrast;
         }
 
         body.fullscreen-mode .main-content {
@@ -1420,8 +1424,8 @@
             try {
                 const artistData = await spotifyApiCall(`/artists/${artistId}`);
                 if (artistData && artistData.images && artistData.images.length > 0) {
-                    // Get the highest resolution image (first in array)
-                    return artistData.images[0].url;
+                    const largestImage = artistData.images[0];
+                    return largestImage.url;
                 }
                 return null;
             } catch (error) {
