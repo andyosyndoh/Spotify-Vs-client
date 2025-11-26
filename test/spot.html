@@ -310,88 +310,6 @@
             z-index: 10;
         }
 
-        /* Queue Panel */
-        .queue-panel {
-            position: fixed;
-            right: 20px;
-            top: 100px;
-            width: 300px;
-            max-height: 60vh;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(20px);
-            border-radius: 15px;
-            padding: 20px;
-            overflow-y: auto;
-            z-index: 100;
-        }
-
-        .queue-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: #1DB954;
-        }
-
-        .queue-section {
-            margin-bottom: 20px;
-        }
-
-        .queue-section-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: rgba(255, 255, 255, 0.7);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .queue-item {
-            display: flex;
-            gap: 10px;
-            padding: 8px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        .queue-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .queue-item.current {
-            background: rgba(29, 185, 84, 0.2);
-            border-left: 3px solid #1DB954;
-        }
-
-        .queue-item-art {
-            width: 45px;
-            height: 45px;
-            border-radius: 4px;
-            object-fit: cover;
-        }
-
-        .queue-item-info {
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .queue-item-name {
-            font-size: 14px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .queue-item-artist {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
         /* QR Code */
         .qr-container {
             position: fixed;
@@ -422,34 +340,15 @@
             height: 100%;
         }
 
-        /* Scrollbar styling */
-        .queue-panel::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .queue-panel::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-
-        .queue-panel::-webkit-scrollbar-thumb {
-            background: rgba(29, 185, 84, 0.6);
-            border-radius: 3px;
-        }
-
-        .queue-panel::-webkit-scrollbar-thumb:hover {
-            background: rgba(29, 185, 84, 0.8);
-        }
-
         /* Responsive adjustments */
         @media (max-width: 1024px) {
-            .queue-panel {
-                width: 250px;
+            .album-art-main {
+                width: 350px;
+                height: 350px;
             }
         }
 
         @media (max-width: 768px) {
-            .queue-panel,
             .qr-container {
                 display: none;
             }
@@ -523,19 +422,6 @@
             <strong>Error:</strong> <span id="error-message"></span>
         </div>
 
-        <!-- Queue Panel -->
-        <div class="queue-panel hidden" id="queue-panel">
-            <div class="queue-title">Queue</div>
-            <div class="queue-section" id="previous-section">
-                <div class="queue-section-title">Previously Played</div>
-                <div id="previous-tracks"></div>
-            </div>
-            <div class="queue-section" id="upcoming-section">
-                <div class="queue-section-title">Up Next</div>
-                <div id="upcoming-tracks"></div>
-            </div>
-        </div>
-
         <!-- QR Code -->
         <div class="qr-container hidden" id="qr-container">
             <div class="qr-title">Scan to Play</div>
@@ -563,7 +449,7 @@
         // For Live Server (default): http://127.0.0.1:5500/test/spot.html
         // For file:// protocol: use http://127.0.0.1:5500/test/spot.html and run a server
         const SPOTIFY_REDIRECT_URI = 'http://127.0.0.1:5500/test/spot.html';
-        const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-recently-played';
+        const SCOPES = 'user-read-playback-state user-modify-playback-state';
 
         // Firebase Initialization
         let app, db, auth, userId;
@@ -879,7 +765,6 @@
 
                 // Update new features
                 generateQRCode(trackUri);
-                updateQueue();
 
             } catch (error) {
                 displayError("Failed to get track: " + error.message);
@@ -1030,7 +915,6 @@
                 document.getElementById('auth-section').classList.remove('hidden');
                 document.getElementById('refresh-btn').style.display = 'none';
                 document.getElementById('logout-btn').classList.add('hidden');
-                document.getElementById('queue-panel').classList.add('hidden');
                 document.getElementById('qr-container').classList.add('hidden');
                 document.getElementById('status-message').textContent = 'Logged out. Click to login again with updated permissions.';
                 document.title = 'Spotify Extension Core Simulator';
@@ -1213,63 +1097,6 @@
             qrContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code">`;
             
             document.getElementById('qr-container').classList.remove('hidden');
-        }
-
-        // Update Queue (Previously Played + Up Next)
-        async function updateQueue() {
-            try {
-                const previousTracks = document.getElementById('previous-tracks');
-                const upcomingTracks = document.getElementById('upcoming-tracks');
-                
-                // Try to get recently played
-                try {
-                    const recentData = await spotifyApiCall('/me/player/recently-played?limit=3');
-                    
-                    if (recentData && recentData.items && recentData.items.length > 0) {
-                        previousTracks.innerHTML = recentData.items.map(item => `
-                            <div class="queue-item">
-                                <img src="${item.track.album.images[2]?.url || ''}" class="queue-item-art" alt="">
-                                <div class="queue-item-info">
-                                    <div class="queue-item-name">${item.track.name}</div>
-                                    <div class="queue-item-artist">${item.track.artists.map(a => a.name).join(', ')}</div>
-                                </div>
-                            </div>
-                        `).join('');
-                    } else {
-                        previousTracks.innerHTML = '<div class="queue-item"><div class="queue-item-info"><div class="lyrics-unavailable">No recent tracks</div></div></div>';
-                    }
-                } catch (error) {
-                    console.log('Recently played not available:', error.message);
-                    previousTracks.innerHTML = '<div class="queue-item"><div class="queue-item-info"><div class="lyrics-unavailable" style="font-style: italic; color: rgba(255, 255, 255, 0.5); font-size: 12px;">Recently played unavailable<br>Re-login to grant permission</div></div></div>';
-                }
-
-                // Try to get queue (upcoming tracks)
-                try {
-                    const queueData = await spotifyApiCall('/me/player/queue');
-                    
-                    if (queueData && queueData.queue && queueData.queue.length > 0) {
-                        const nextTracks = queueData.queue.slice(0, 5);
-                        upcomingTracks.innerHTML = nextTracks.map((track, index) => `
-                            <div class="queue-item ${index === 0 ? 'current' : ''}">
-                                <img src="${track.album.images[2]?.url || ''}" class="queue-item-art" alt="">
-                                <div class="queue-item-info">
-                                    <div class="queue-item-name">${track.name}</div>
-                                    <div class="queue-item-artist">${track.artists.map(a => a.name).join(', ')}</div>
-                                </div>
-                            </div>
-                        `).join('');
-                    } else {
-                        upcomingTracks.innerHTML = '<div class="queue-item"><div class="queue-item-info"><div class="lyrics-unavailable" style="font-style: italic; color: rgba(255, 255, 255, 0.5); font-size: 12px;">No upcoming tracks in queue</div></div></div>';
-                    }
-                } catch (error) {
-                    console.log('Queue not available:', error.message);
-                    upcomingTracks.innerHTML = '<div class="queue-item"><div class="queue-item-info"><div class="lyrics-unavailable" style="font-style: italic; color: rgba(255, 255, 255, 0.5); font-size: 12px;">Queue unavailable</div></div></div>';
-                }
-
-                document.getElementById('queue-panel').classList.remove('hidden');
-            } catch (error) {
-                console.error('Failed to update queue:', error);
-            }
         }
 
         // Show/hide explicit badge
