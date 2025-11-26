@@ -352,6 +352,8 @@
         body.fullscreen-mode .background-image {
             filter: none !important;
             background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
         body.fullscreen-mode .main-content {
@@ -372,10 +374,15 @@
             pointer-events: none;
             transition: opacity 0.3s ease;
             position: fixed;
-            top: 20px;
-            left: 20px;
-            right: 20px;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-width: 100%;
             z-index: 300;
+            padding: 20px 40px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+            margin-bottom: 0;
         }
 
         body.fullscreen-mode .header .refresh-button,
@@ -391,9 +398,9 @@
         .fullscreen-controls {
             display: none;
             position: fixed;
-            bottom: 50%;
+            bottom: 40px;
             left: 50%;
-            transform: translate(-50%, 50%);
+            transform: translateX(-50%);
             z-index: 250;
             opacity: 0;
             pointer-events: none;
@@ -442,8 +449,8 @@
         .fullscreen-info {
             display: none;
             position: fixed;
-            bottom: 30px;
-            left: 30px;
+            bottom: 140px;
+            left: 40px;
             z-index: 200;
             align-items: center;
             gap: 20px;
@@ -479,8 +486,8 @@
 
         /* Fullscreen QR Code Adjustments */
         body.fullscreen-mode .qr-container {
-            bottom: 30px;
-            right: 30px;
+            bottom: 140px;
+            right: 40px;
             padding: 10px;
         }
 
@@ -910,6 +917,9 @@
                 const trackId = data.item.id;
                 const artistId = data.item.artists[0]?.id; // Get first artist ID
 
+                // If in fullscreen and artist changed, update background
+                const artistChanged = currentArtistId && artistId && artistId !== currentArtistId;
+                
                 // Store artist ID for fullscreen mode
                 currentArtistId = artistId;
 
@@ -953,6 +963,11 @@
                 // Update fullscreen text info
                 document.getElementById('fullscreen-song-name').textContent = songName;
                 document.getElementById('fullscreen-artist-name').textContent = artistName;
+
+                // If in fullscreen and artist changed, update background
+                if (document.fullscreenElement && artistChanged) {
+                    await updateFullscreenBackground();
+                }
 
                 // Update progress bar
                 if (durationMs) {
