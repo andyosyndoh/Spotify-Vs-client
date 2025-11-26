@@ -374,29 +374,6 @@
             text-overflow: ellipsis;
         }
 
-        /* Audio Visualizer */
-        .visualizer-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            gap: 4px;
-            padding: 0 20px 20px;
-            z-index: 50;
-        }
-
-        .visualizer-bar {
-            width: 4px;
-            background: linear-gradient(to top, #1DB954, #1ed760);
-            border-radius: 2px;
-            transition: height 0.1s ease;
-            opacity: 0.8;
-        }
-
         /* QR Code */
         .qr-container {
             position: fixed;
@@ -537,9 +514,6 @@
                 <div id="upcoming-tracks"></div>
             </div>
         </div>
-
-        <!-- Audio Visualizer -->
-        <div class="visualizer-container hidden" id="visualizer-container"></div>
 
         <!-- QR Code -->
         <div class="qr-container hidden" id="qr-container">
@@ -826,6 +800,7 @@
                 const durationMs = data.item.duration_ms;
                 const isExplicit = data.item.explicit;
                 const trackUri = data.item.uri;
+                const trackId = data.item.id;
 
                 // Update page title with currently playing song
                 document.title = isPlaying 
@@ -1085,9 +1060,6 @@
                 document.getElementById('refresh-btn').style.display = 'flex';
                 document.getElementById('error-box').classList.add('hidden');
 
-                // Initialize visualizer
-                initializeVisualizer();
-
                 await getCurrentlyPlaying();
 
                 // Optional: Set up an interval to refresh the current track automatically (like a real extension status bar)
@@ -1232,42 +1204,6 @@
             } catch (error) {
                 console.error('Failed to update queue:', error);
             }
-        }
-
-        // Initialize Audio Visualizer
-        function initializeVisualizer() {
-            const container = document.getElementById('visualizer-container');
-            const numBars = 60;
-            
-            // Create visualizer bars
-            for (let i = 0; i < numBars; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'visualizer-bar';
-                bar.style.height = '10px';
-                container.appendChild(bar);
-            }
-            
-            container.classList.remove('hidden');
-            animateVisualizer();
-        }
-
-        // Animate visualizer bars
-        function animateVisualizer() {
-            const bars = document.querySelectorAll('.visualizer-bar');
-            
-            function updateBars() {
-                bars.forEach((bar, index) => {
-                    // Create a wave-like pattern with random variation
-                    const wave = Math.sin((Date.now() / 200) + (index / 5)) * 30 + 30;
-                    const random = Math.random() * 20;
-                    const height = wave + random;
-                    bar.style.height = `${height}px`;
-                });
-                
-                requestAnimationFrame(updateBars);
-            }
-            
-            updateBars();
         }
 
         // Show/hide explicit badge
