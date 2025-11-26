@@ -13,12 +13,25 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            width: 100%;
+            height: 100%;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: #2a3b3a;
             color: white;
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100vh;
             min-height: 100vh;
             overflow: hidden;
             position: relative;
@@ -37,12 +50,14 @@
             transition: all 0.8s ease;
         }
 
-        .container {
+        .cont {
             width: 100%;
+            max-width: 100%;
             height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            align-items: center;
             padding: 20px;
             box-sizing: border-box;
             position: relative;
@@ -54,6 +69,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
         }
 
         .spotify-logo {
@@ -174,6 +191,8 @@
             align-items: center;
             gap: 40px;
             padding-bottom: 40px;
+            width: 100%;
+            max-width: 600px;
         }
 
         .control-button {
@@ -255,7 +274,7 @@
 <body>
     <div class="background-image" id="background-image"></div>
     
-    <div class="container">
+    <div class="cont">
         <div class="header">
             <div class="spotify-logo">
                 <i class="fab fa-spotify" style="color: #1DB954;"></i>
