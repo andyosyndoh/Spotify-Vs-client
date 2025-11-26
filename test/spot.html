@@ -109,6 +109,24 @@
             align-items: center;
         }
 
+        .logout-button {
+            background: rgba(220, 38, 38, 0.8);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .logout-button:hover {
+            background: rgba(220, 38, 38, 1);
+            transform: scale(1.05);
+        }
+
         .spotify-button {
             background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
             color: white;
@@ -454,6 +472,9 @@
                 Spotify
             </div>
             <div class="header-controls">
+                <button class="logout-button hidden" onclick="handleLogout()" id="logout-btn">
+                    Logout
+                </button>
                 <button class="fullscreen-button" onclick="toggleFullscreen()" id="fullscreen-btn" title="Toggle Fullscreen">
                     <i class="fas fa-expand" id="fullscreen-icon"></i>
                 </button>
@@ -542,7 +563,7 @@
         // For Live Server (default): http://127.0.0.1:5500/test/spot.html
         // For file:// protocol: use http://127.0.0.1:5500/test/spot.html and run a server
         const SPOTIFY_REDIRECT_URI = 'http://127.0.0.1:5500/test/spot.html';
-        const SCOPES = 'user-read-playback-state user-modify-playback-state';
+        const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-recently-played';
 
         // Firebase Initialization
         let app, db, auth, userId;
@@ -563,6 +584,7 @@
         window.togglePlayback = togglePlayback;
         window.getCurrentlyPlaying = getCurrentlyPlaying;
         window.toggleFullscreen = toggleFullscreen;
+        window.handleLogout = handleLogout;
 
         // Utility to display errors
         function displayError(message) {
@@ -992,6 +1014,34 @@
             window.location.href = authUrl;
         }
 
+        // Logout function - clears all stored tokens and resets UI
+        async function handleLogout() {
+            try {
+                // Clear token from storage
+                if (db && userId) {
+                    const docRef = doc(db, TOKEN_DOC_PATH + userId, TOKEN_DOC_ID);
+                    await setDoc(docRef, {});
+                }
+                localStorage.removeItem('spotify_token');
+                localStorage.removeItem('code_verifier');
+
+                // Reset UI
+                document.getElementById('player-section').classList.add('hidden');
+                document.getElementById('auth-section').classList.remove('hidden');
+                document.getElementById('refresh-btn').style.display = 'none';
+                document.getElementById('logout-btn').classList.add('hidden');
+                document.getElementById('queue-panel').classList.add('hidden');
+                document.getElementById('qr-container').classList.add('hidden');
+                document.getElementById('status-message').textContent = 'Logged out. Click to login again with updated permissions.';
+                document.title = 'Spotify Extension Core Simulator';
+
+                console.log('Logged out successfully');
+            } catch (error) {
+                console.error('Logout error:', error);
+                displayError('Failed to logout: ' + error.message);
+            }
+        }
+
         // Exchange authorization code for access token
         async function exchangeCodeForToken(code) {
             const codeVerifier = localStorage.getItem('code_verifier');
@@ -1058,6 +1108,7 @@
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('player-section').classList.remove('hidden');
                 document.getElementById('refresh-btn').style.display = 'flex';
+                document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('error-box').classList.add('hidden');
 
                 await getCurrentlyPlaying();
@@ -1167,37 +1218,52 @@
         // Update Queue (Previously Played + Up Next)
         async function updateQueue() {
             try {
-                // Get recently played
-                const recentData = await spotifyApiCall('/me/player/recently-played?limit=3');
                 const previousTracks = document.getElementById('previous-tracks');
-                
-                if (recentData && recentData.items) {
-                    previousTracks.innerHTML = recentData.items.map(item => `
-                        <div class="queue-item">
-                            <img src="${item.track.album.images[2]?.url || ''}" class="queue-item-art" alt="">
-                            <div class="queue-item-info">
-                                <div class="queue-item-name">${item.track.name}</div>
-                                <div class="queue-item-artist">${item.track.artists.map(a => a.name).join(', ')}</div>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-
-                // Get queue (upcoming tracks)
-                const queueData = await spotifyApiCall('/me/player/queue');
                 const upcomingTracks = document.getElementById('upcoming-tracks');
                 
-                if (queueData && queueData.queue) {
-                    const nextTracks = queueData.queue.slice(0, 5);
-                    upcomingTracks.innerHTML = nextTracks.map((track, index) => `
-                        <div class="queue-item ${index === 0 ? 'current' : ''}">
-                            <img src="${track.album.images[2]?.url || ''}" class="queue-item-art" alt="">
-                            <div class="queue-item-info">
-                                <div class="queue-item-name">${track.name}</div>
-                                <div class="queue-item-artist">${track.artists.map(a => a.name).join(', ')}</div>
+                // Try to get recently played
+                try {
+                    const recentData = await spotifyApiCall('/me/player/recently-played?limit=3');
+                    
+                    if (recentData && recentData.items && recentData.items.length > 0) {
+                        previousTracks.innerHTML = recentData.items.map(item => `
+                            <div class="queue-item">
+                                <img src="${item.track.album.images[2]?.url || ''}" class="queue-item-art" alt="">
+                                <div class="queue-item-info">
+                                    <div class="queue-item-name">${item.track.name}</div>
+                                    <div class="queue-item-artist">${item.track.artists.map(a => a.name).join(', ')}</div>
+                                </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `).join('');
+                    } else {
+                        previousTracks.innerHTML = '<div class="queue-item"><div class="queue-item-info"><div class="lyrics-unavailable">No recent tracks</div></div></div>';
+                    }
+                } catch (error) {
+                    console.log('Recently played not available:', error.message);
+                    previousTracks.innerHTML = '<div class="queue-item"><div class="queue-item-info"><div class="lyrics-unavailable" style="font-style: italic; color: rgba(255, 255, 255, 0.5); font-size: 12px;">Recently played unavailable<br>Re-login to grant permission</div></div></div>';
+                }
+
+                // Try to get queue (upcoming tracks)
+                try {
+                    const queueData = await spotifyApiCall('/me/player/queue');
+                    
+                    if (queueData && queueData.queue && queueData.queue.length > 0) {
+                        const nextTracks = queueData.queue.slice(0, 5);
+                        upcomingTracks.innerHTML = nextTracks.map((track, index) => `
+                            <div class="queue-item ${index === 0 ? 'current' : ''}">
+                                <img src="${track.album.images[2]?.url || ''}" class="queue-item-art" alt="">
+                                <div class="queue-item-info">
+                                    <div class="queue-item-name">${track.name}</div>
+                                    <div class="queue-item-artist">${track.artists.map(a => a.name).join(', ')}</div>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        upcomingTracks.innerHTML = '<div class="queue-item"><div class="queue-item-info"><div class="lyrics-unavailable" style="font-style: italic; color: rgba(255, 255, 255, 0.5); font-size: 12px;">No upcoming tracks in queue</div></div></div>';
+                    }
+                } catch (error) {
+                    console.log('Queue not available:', error.message);
+                    upcomingTracks.innerHTML = '<div class="queue-item"><div class="queue-item-info"><div class="lyrics-unavailable" style="font-style: italic; color: rgba(255, 255, 255, 0.5); font-size: 12px;">Queue unavailable</div></div></div>';
                 }
 
                 document.getElementById('queue-panel').classList.remove('hidden');
