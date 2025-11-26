@@ -340,6 +340,76 @@
             height: 100%;
         }
 
+        /* Fullscreen Mode Styles */
+        body.fullscreen-mode .background-image {
+            filter: none !important;
+            background-size: cover;
+        }
+
+        body.fullscreen-mode .main-content {
+            display: none;
+        }
+
+        body.fullscreen-mode .controls-bottom {
+            display: none;
+        }
+
+        /* Fullscreen Bottom Left Info */
+        .fullscreen-info {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 200;
+            align-items: center;
+            gap: 20px;
+        }
+
+        body.fullscreen-mode .fullscreen-info {
+            display: flex;
+        }
+
+        .fullscreen-album-art {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            object-fit: cover;
+        }
+
+        .fullscreen-track-info {
+            color: white;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        }
+
+        .fullscreen-track-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .fullscreen-track-artist {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Fullscreen QR Code Adjustments */
+        body.fullscreen-mode .qr-container {
+            bottom: 30px;
+            right: 30px;
+            padding: 10px;
+        }
+
+        body.fullscreen-mode #qr-code {
+            width: 100px;
+            height: 100px;
+        }
+
+        body.fullscreen-mode .qr-title {
+            font-size: 10px;
+            margin-bottom: 5px;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 1024px) {
             .album-art-main {
@@ -356,6 +426,19 @@
             .album-art-main {
                 width: 300px;
                 height: 300px;
+            }
+
+            body.fullscreen-mode .fullscreen-album-art {
+                width: 80px;
+                height: 80px;
+            }
+
+            body.fullscreen-mode .fullscreen-track-title {
+                font-size: 18px;
+            }
+
+            body.fullscreen-mode .fullscreen-track-artist {
+                font-size: 14px;
             }
         }
     </style>
@@ -427,6 +510,15 @@
             <div class="qr-title">Scan to Play</div>
             <div id="qr-code"></div>
         </div>
+
+        <!-- Fullscreen Mode Info (Bottom Left) -->
+        <div class="fullscreen-info" id="fullscreen-info">
+            <img id="fullscreen-album-art" class="fullscreen-album-art" src="" alt="Album Art">
+            <div class="fullscreen-track-info">
+                <div class="fullscreen-track-title" id="fullscreen-song-name">...</div>
+                <div class="fullscreen-track-artist" id="fullscreen-artist-name">...</div>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase Imports for persistent storage (simulation only) -->
@@ -463,6 +555,10 @@
 
         // Wake Lock API to prevent screen from sleeping
         let wakeLock = null;
+
+        // Artist image tracking
+        let currentArtistId = null;
+        let currentArtistImage = null;
 
         // Expose functions to global scope
         window.handleLogin = handleLogin;
@@ -709,6 +805,10 @@
                 const isExplicit = data.item.explicit;
                 const trackUri = data.item.uri;
                 const trackId = data.item.id;
+                const artistId = data.item.artists[0]?.id; // Get first artist ID
+
+                // Store artist ID for fullscreen mode
+                currentArtistId = artistId;
 
                 // Update page title with currently playing song
                 document.title = isPlaying 
@@ -735,11 +835,21 @@
                 // Display album art if available
                 if (albumArt) {
                     albumArtEl.src = albumArt;
-                    // Set background image
-                    document.getElementById('background-image').style.backgroundImage = `url(${albumArt})`;
+                    // Set background image (will be overridden in fullscreen mode)
+                    if (!document.fullscreenElement) {
+                        document.getElementById('background-image').style.backgroundImage = `url(${albumArt})`;
+                    }
+                    // Update fullscreen info
+                    document.getElementById('fullscreen-album-art').src = albumArt;
                 } else {
-                    document.getElementById('background-image').style.backgroundImage = 'none';
+                    if (!document.fullscreenElement) {
+                        document.getElementById('background-image').style.backgroundImage = 'none';
+                    }
                 }
+
+                // Update fullscreen text info
+                document.getElementById('fullscreen-song-name').textContent = songName;
+                document.getElementById('fullscreen-artist-name').textContent = artistName;
 
                 // Update progress bar
                 if (durationMs) {
@@ -1018,6 +1128,12 @@
                     fullscreenIcon.classList.remove('fa-expand');
                     fullscreenIcon.classList.add('fa-compress');
                     
+                    // Add fullscreen mode class
+                    document.body.classList.add('fullscreen-mode');
+                    
+                    // Fetch and set artist background
+                    await updateFullscreenBackground();
+                    
                     // Request wake lock when entering fullscreen
                     await requestWakeLock();
                 } catch (err) {
@@ -1029,6 +1145,15 @@
                     await document.exitFullscreen();
                     fullscreenIcon.classList.remove('fa-compress');
                     fullscreenIcon.classList.add('fa-expand');
+                    
+                    // Remove fullscreen mode class
+                    document.body.classList.remove('fullscreen-mode');
+                    
+                    // Restore album art background with blur
+                    const albumArt = document.getElementById('album-art').src;
+                    if (albumArt) {
+                        document.getElementById('background-image').style.backgroundImage = `url(${albumArt})`;
+                    }
                     
                     // Release wake lock when exiting fullscreen
                     releaseWakeLock();
@@ -1072,15 +1197,23 @@
         });
 
         // Listen for fullscreen changes
-        document.addEventListener('fullscreenchange', () => {
+        document.addEventListener('fullscreenchange', async () => {
             const fullscreenIcon = document.getElementById('fullscreen-icon');
             if (document.fullscreenElement) {
                 fullscreenIcon.classList.remove('fa-expand');
                 fullscreenIcon.classList.add('fa-compress');
+                document.body.classList.add('fullscreen-mode');
+                await updateFullscreenBackground();
                 requestWakeLock();
             } else {
                 fullscreenIcon.classList.remove('fa-compress');
                 fullscreenIcon.classList.add('fa-expand');
+                document.body.classList.remove('fullscreen-mode');
+                // Restore album art background
+                const albumArt = document.getElementById('album-art').src;
+                if (albumArt) {
+                    document.getElementById('background-image').style.backgroundImage = `url(${albumArt})`;
+                }
                 releaseWakeLock();
             }
         });
@@ -1106,6 +1239,32 @@
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
+            }
+        }
+
+        // Fetch artist details including high-res image
+        async function fetchArtistImage(artistId) {
+            try {
+                const artistData = await spotifyApiCall(`/artists/${artistId}`);
+                if (artistData && artistData.images && artistData.images.length > 0) {
+                    // Get the highest resolution image (first in array)
+                    return artistData.images[0].url;
+                }
+                return null;
+            } catch (error) {
+                console.error('Failed to fetch artist image:', error);
+                return null;
+            }
+        }
+
+        // Update fullscreen background with artist image
+        async function updateFullscreenBackground() {
+            if (document.fullscreenElement && currentArtistId) {
+                const artistImage = await fetchArtistImage(currentArtistId);
+                if (artistImage) {
+                    currentArtistImage = artistImage;
+                    document.getElementById('background-image').style.backgroundImage = `url(${artistImage})`;
+                }
             }
         }
 
