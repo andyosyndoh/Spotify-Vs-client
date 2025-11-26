@@ -610,7 +610,7 @@
                 const artistName = data.item.artists.map(a => a.name).join(', ');
                 const albumName = data.item.album?.name;
                 const isPlaying = data.is_playing;
-                const albumArt = data.item.album?.images?.[1]?.url;
+                const albumArt = data.item.album?.images?.[0]?.url;
                 const progressMs = data.progress_ms || 0;
                 const durationMs = data.item.duration_ms;
                 const isExplicit = data.item.explicit;
