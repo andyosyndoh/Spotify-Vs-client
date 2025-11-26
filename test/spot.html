@@ -81,7 +81,8 @@
             font-weight: 600;
         }
 
-        .refresh-button {
+        .refresh-button,
+        .fullscreen-button {
             background: rgba(255, 255, 255, 0.1);
             border: none;
             color: white;
@@ -96,9 +97,16 @@
             backdrop-filter: blur(10px);
         }
 
-        .refresh-button:hover {
+        .refresh-button:hover,
+        .fullscreen-button:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: scale(1.1);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
         .spotify-button {
@@ -280,9 +288,14 @@
                 <i class="fab fa-spotify" style="color: #1DB954;"></i>
                 Spotify
             </div>
-            <button class="refresh-button" onclick="getCurrentlyPlaying()" id="refresh-btn" style="display: none;">
-                <i class="fas fa-sync-alt"></i>
-            </button>
+            <div class="header-controls">
+                <button class="fullscreen-button" onclick="toggleFullscreen()" id="fullscreen-btn" title="Toggle Fullscreen">
+                    <i class="fas fa-expand" id="fullscreen-icon"></i>
+                </button>
+                <button class="refresh-button" onclick="getCurrentlyPlaying()" id="refresh-btn" style="display: none;">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
         </div>
 
         <div id="auth-section" class="auth-section">
@@ -356,11 +369,15 @@
         let lastUpdateTime = 0;
         let progressInterval = null;
 
+        // Wake Lock API to prevent screen from sleeping
+        let wakeLock = null;
+
         // Expose functions to global scope
         window.handleLogin = handleLogin;
         window.controlPlayback = controlPlayback;
         window.togglePlayback = togglePlayback;
         window.getCurrentlyPlaying = getCurrentlyPlaying;
+        window.toggleFullscreen = toggleFullscreen;
 
         // Utility to display errors
         function displayError(message) {
@@ -860,6 +877,84 @@
                 document.getElementById('refresh-btn').style.display = 'none';
             }
         }
+
+        // Toggle fullscreen mode
+        async function toggleFullscreen() {
+            const fullscreenIcon = document.getElementById('fullscreen-icon');
+            
+            if (!document.fullscreenElement) {
+                // Enter fullscreen
+                try {
+                    await document.documentElement.requestFullscreen();
+                    fullscreenIcon.classList.remove('fa-expand');
+                    fullscreenIcon.classList.add('fa-compress');
+                    
+                    // Request wake lock when entering fullscreen
+                    await requestWakeLock();
+                } catch (err) {
+                    console.error('Error entering fullscreen:', err);
+                }
+            } else {
+                // Exit fullscreen
+                try {
+                    await document.exitFullscreen();
+                    fullscreenIcon.classList.remove('fa-compress');
+                    fullscreenIcon.classList.add('fa-expand');
+                    
+                    // Release wake lock when exiting fullscreen
+                    releaseWakeLock();
+                } catch (err) {
+                    console.error('Error exiting fullscreen:', err);
+                }
+            }
+        }
+
+        // Request wake lock to prevent screen from sleeping
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock activated - screen will stay awake');
+                    
+                    wakeLock.addEventListener('release', () => {
+                        console.log('Wake Lock released');
+                    });
+                } else {
+                    console.warn('Wake Lock API not supported');
+                }
+            } catch (err) {
+                console.error('Wake Lock error:', err);
+            }
+        }
+
+        // Release wake lock
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
+
+        // Re-acquire wake lock when page becomes visible again
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+
+        // Listen for fullscreen changes
+        document.addEventListener('fullscreenchange', () => {
+            const fullscreenIcon = document.getElementById('fullscreen-icon');
+            if (document.fullscreenElement) {
+                fullscreenIcon.classList.remove('fa-expand');
+                fullscreenIcon.classList.add('fa-compress');
+                requestWakeLock();
+            } else {
+                fullscreenIcon.classList.remove('fa-compress');
+                fullscreenIcon.classList.add('fa-expand');
+                releaseWakeLock();
+            }
+        });
 
         // Start the application
         window.onload = initializeFirebase;
