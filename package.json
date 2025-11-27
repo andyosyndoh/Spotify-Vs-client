@@ -9,7 +9,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "*"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -81,6 +83,10 @@
         "spotify.clientId": {
           "type": "string",
           "description": "Spotify Client ID"
+        },
+        "spotify.clientSecret": {
+          "type": "string",
+          "description": "Spotify Client Secret"
         },
         "spotify.refreshInterval": {
           "type": "number",

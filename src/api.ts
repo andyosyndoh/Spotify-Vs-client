@@ -37,8 +37,11 @@ export class SpotifyAPI {
         } catch (error: any) {
             if (error.response?.status === 401) {
                 throw new Error('Authentication required');
+            } else if (error.response?.status === 404) {
+                // No active device - this is normal
+                return undefined;
             } else {
-                vscode.window.showErrorMessage(`Spotify API error: ${error.message}`);
+                console.error('Spotify API error:', error.message);
             }
             throw error;
         }
