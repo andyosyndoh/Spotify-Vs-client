@@ -12,7 +12,7 @@ let friendsProvider: FriendsProvider;
 export function activate(context: vscode.ExtensionContext) {
     spotifyAuth = new SpotifyAuth(context);
     spotifyAPI = new SpotifyAPI(spotifyAuth);
-    statusBarProvider = new StatusBarProvider(spotifyAPI);
+    statusBarProvider = new StatusBarProvider(spotifyAPI, spotifyAuth);
     friendsProvider = new FriendsProvider(spotifyAPI);
 
     // Register commands

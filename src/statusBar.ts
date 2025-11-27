@@ -1,19 +1,46 @@
 import * as vscode from 'vscode';
 import { SpotifyAPI, PlaybackState } from './api';
+import { SpotifyAuth } from './auth';
 
 export class StatusBarProvider implements vscode.Disposable {
-    private statusBarItem: vscode.StatusBarItem;
+    private trackInfoItem: vscode.StatusBarItem;
+    private previousButton: vscode.StatusBarItem;
+    private playPauseButton: vscode.StatusBarItem;
+    private nextButton: vscode.StatusBarItem;
     private refreshTimer?: NodeJS.Timeout;
     private refreshInterval: number;
+    private isAuthenticated = false;
 
-    constructor(private spotifyAPI: SpotifyAPI) {
-        this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    constructor(private spotifyAPI: SpotifyAPI, private auth: SpotifyAuth) {
         this.refreshInterval = vscode.workspace.getConfiguration('spotify').get('refreshInterval') || 5000;
         
-        this.statusBarItem.command = 'spotify.showCurrentTrack';
-        this.statusBarItem.show();
+        // Create status bar items from right to left (higher priority numbers appear more to the right)
+        this.trackInfoItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 104);
+        this.previousButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 103);
+        this.playPauseButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 102);
+        this.nextButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 101);
         
+        this.setupStatusBarItems();
         this.startRefresh();
+    }
+
+    private setupStatusBarItems(): void {
+        // Track info
+        this.trackInfoItem.command = 'spotify.showCurrentTrack';
+        this.trackInfoItem.show();
+        
+        // Control buttons
+        this.previousButton.text = '⏮️';
+        this.previousButton.command = 'spotify.previous';
+        this.previousButton.tooltip = 'Previous Track';
+        
+        this.playPauseButton.text = '▶️';
+        this.playPauseButton.command = 'spotify.play';
+        this.playPauseButton.tooltip = 'Play/Pause';
+        
+        this.nextButton.text = '⏭️';
+        this.nextButton.command = 'spotify.next';
+        this.nextButton.tooltip = 'Next Track';
     }
 
     private startRefresh(): void {
@@ -25,30 +52,69 @@ export class StatusBarProvider implements vscode.Disposable {
 
     private async updateStatusBar(): Promise<void> {
         try {
+            const token = await this.auth.getAccessToken();
+            
+            if (!token) {
+                this.showAuthenticationRequired();
+                return;
+            }
+            
+            this.isAuthenticated = true;
             const playback = await this.spotifyAPI.getCurrentPlayback();
             
             if (playback?.item) {
                 const track = playback.item;
                 const artists = track.artists.map(a => a.name).join(', ');
-                const icon = playback.is_playing ? '▶️' : '⏸️';
                 
-                this.statusBarItem.text = `${icon} ${track.name} - ${artists}`;
-                this.statusBarItem.tooltip = `${track.name}\nby ${artists}\nfrom ${track.album.name}`;
+                // Update track info
+                this.trackInfoItem.text = `🎵 ${track.name} - ${artists}`;
+                this.trackInfoItem.tooltip = `${track.name}\nby ${artists}\nfrom ${track.album.name}`;
+                this.trackInfoItem.command = 'spotify.showCurrentTrack';
+                
+                // Update play/pause button
+                this.playPauseButton.text = playback.is_playing ? '⏸️' : '▶️';
+                this.playPauseButton.command = playback.is_playing ? 'spotify.pause' : 'spotify.play';
+                this.playPauseButton.tooltip = playback.is_playing ? 'Pause' : 'Play';
+                
+                this.showControlButtons();
             } else {
-                this.statusBarItem.text = '🎵 No music playing';
-                this.statusBarItem.tooltip = 'No Spotify playback detected';
+                this.trackInfoItem.text = '🎵 No music playing';
+                this.trackInfoItem.tooltip = 'No Spotify playback detected';
+                this.trackInfoItem.command = 'spotify.showCurrentTrack';
+                this.hideControlButtons();
             }
         } catch (error) {
-            this.statusBarItem.text = '🎵 Spotify disconnected';
-            this.statusBarItem.tooltip = 'Click to authenticate with Spotify';
-            this.statusBarItem.command = 'spotify.authenticate';
+            this.showAuthenticationRequired();
         }
+    }
+
+    private showAuthenticationRequired(): void {
+        this.isAuthenticated = false;
+        this.trackInfoItem.text = '🎵 Click to login to Spotify';
+        this.trackInfoItem.tooltip = 'Click to authenticate with Spotify';
+        this.trackInfoItem.command = 'spotify.authenticate';
+        this.hideControlButtons();
+    }
+
+    private showControlButtons(): void {
+        this.previousButton.show();
+        this.playPauseButton.show();
+        this.nextButton.show();
+    }
+
+    private hideControlButtons(): void {
+        this.previousButton.hide();
+        this.playPauseButton.hide();
+        this.nextButton.hide();
     }
 
     dispose(): void {
         if (this.refreshTimer) {
             clearInterval(this.refreshTimer);
         }
-        this.statusBarItem.dispose();
+        this.trackInfoItem.dispose();
+        this.previousButton.dispose();
+        this.playPauseButton.dispose();
+        this.nextButton.dispose();
     }
 }

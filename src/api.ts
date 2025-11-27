@@ -36,10 +36,11 @@ export class SpotifyAPI {
             return response.data;
         } catch (error: any) {
             if (error.response?.status === 401) {
-                vscode.window.showErrorMessage('Spotify authentication expired. Please re-authenticate.');
+                throw new Error('Authentication required');
             } else {
                 vscode.window.showErrorMessage(`Spotify API error: ${error.message}`);
             }
+            throw error;
         }
     }
 

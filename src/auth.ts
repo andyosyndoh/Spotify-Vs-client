@@ -5,7 +5,7 @@ export class SpotifyAuth {
     private accessToken?: string;
     private refreshToken?: string;
     private clientId: string;
-    private redirectUri = 'https://localhost:8080/callback';
+    private redirectUri = 'http://127.0.0.1:5500/test/spot.html';
 
     constructor(private context: vscode.ExtensionContext) {
         this.clientId = vscode.workspace.getConfiguration('spotify').get('clientId') || '';
@@ -23,8 +23,8 @@ export class SpotifyAuth {
         vscode.env.openExternal(vscode.Uri.parse(authUrl));
         
         const code = await vscode.window.showInputBox({
-            prompt: 'Enter the authorization code from the callback URL',
-            placeHolder: 'Authorization code'
+            prompt: 'After authorizing, copy the "code" parameter from the URL and paste it here',
+            placeHolder: 'Authorization code from callback URL'
         });
 
         if (code) {
