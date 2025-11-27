@@ -52,15 +52,15 @@ export class StatusBarProvider implements vscode.Disposable {
 
     private async updateStatusBar(): Promise<void> {
         try {
-            const token = await this.auth.getAccessToken();
-            
-            if (!token) {
+            // Check if we have stored tokens first
+            const hasTokens = await this.auth.hasValidTokens();
+            if (!hasTokens) {
                 this.showAuthenticationRequired();
                 return;
             }
             
-            this.isAuthenticated = true;
             const playback = await this.spotifyAPI.getCurrentPlayback();
+            this.isAuthenticated = true;
             
             if (playback?.item) {
                 const track = playback.item;
@@ -83,8 +83,13 @@ export class StatusBarProvider implements vscode.Disposable {
                 this.trackInfoItem.command = 'spotify.showCurrentTrack';
                 this.hideControlButtons();
             }
-        } catch (error) {
-            this.showAuthenticationRequired();
+        } catch (error: any) {
+            if (error.message === 'Authentication required') {
+                this.showAuthenticationRequired();
+            } else {
+                // Keep current state for other errors (network issues, etc.)
+                console.error('Spotify update error:', error.message);
+            }
         }
     }
 

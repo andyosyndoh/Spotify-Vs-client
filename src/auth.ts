@@ -103,15 +103,31 @@ export class SpotifyAuth {
         this.accessToken = await this.context.secrets.get('spotify.accessToken');
         this.refreshToken = await this.context.secrets.get('spotify.refreshToken');
         
-        if (this.accessToken) {
+        if (this.accessToken || this.refreshToken) {
             vscode.commands.executeCommand('setContext', 'spotify:authenticated', true);
         }
     }
 
+    async hasValidTokens(): Promise<boolean> {
+        if (!this.accessToken && !this.refreshToken) {
+            this.accessToken = await this.context.secrets.get('spotify.accessToken');
+            this.refreshToken = await this.context.secrets.get('spotify.refreshToken');
+        }
+        return !!(this.accessToken || this.refreshToken);
+    }
+
     async getAccessToken(): Promise<string | undefined> {
+        // Load tokens from storage if not in memory
+        if (!this.accessToken && !this.refreshToken) {
+            this.accessToken = await this.context.secrets.get('spotify.accessToken');
+            this.refreshToken = await this.context.secrets.get('spotify.refreshToken');
+        }
+        
+        // If no access token but have refresh token, try to refresh
         if (!this.accessToken && this.refreshToken) {
             await this.refreshAccessToken();
         }
+        
         return this.accessToken;
     }
 
