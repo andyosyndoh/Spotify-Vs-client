@@ -68,7 +68,24 @@ export class StatusBarProvider implements vscode.Disposable {
                 
                 // Update track info
                 this.trackInfoItem.text = `🎵 ${track.name} - ${artists}`;
-                this.trackInfoItem.tooltip = `${track.name}\nby ${artists}\nfrom ${track.album.name}`;
+                
+                // Create a MarkdownString tooltip with album artwork
+                const tooltip = new vscode.MarkdownString();
+                tooltip.supportHtml = true;
+                tooltip.isTrusted = true;
+                
+                // Add album artwork and track details side by side using HTML
+                if (track.album.images && track.album.images.length > 0) {
+                    const imageUrl = track.album.images[track.album.images.length - 1].url;
+                    tooltip.appendMarkdown(`<table><tr><td><img src="${imageUrl}" width="64" height="64"/></td><td><b>${track.name}</b><br/>by ${artists}<br/>from <i>${track.album.name}</i></td></tr></table>`);
+                } else {
+                    // Fallback if no image available
+                    tooltip.appendMarkdown(`**${track.name}**\n\n`);
+                    tooltip.appendMarkdown(`by ${artists}\n\n`);
+                    tooltip.appendMarkdown(`from *${track.album.name}*`);
+                }
+                
+                this.trackInfoItem.tooltip = tooltip;
                 this.trackInfoItem.command = 'spotify.showCurrentTrack';
                 
                 // Update play/pause button
