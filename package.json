@@ -3,6 +3,7 @@
   "displayName": "Spotify Integration",
   "description": "Control Spotify playback directly from VS Code with real-time track display and album artwork",
   "version": "1.0.0",
+  "icon": "icon.png",
   "publisher": "andyosyndoh",
   "author": {
     "name": "Andy Osyndoh"
