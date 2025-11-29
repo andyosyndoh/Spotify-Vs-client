@@ -1,10 +1,17 @@
 .vscode/**
 .vscode-test/**
 src/**
+test/**
+scripts/**
 .gitignore
+.git/**
+.env
+.env.example
 .yarnrc
 vsc-extension-quickstart.md
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map
 **/*.ts
+*.vsix
+PUBLISHING.md

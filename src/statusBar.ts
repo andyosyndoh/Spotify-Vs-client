@@ -8,11 +8,19 @@ export class StatusBarProvider implements vscode.Disposable {
     private playPauseButton: vscode.StatusBarItem;
     private nextButton: vscode.StatusBarItem;
     private refreshTimer?: NodeJS.Timeout;
+    private progressTimer?: NodeJS.Timeout;
     private refreshInterval: number;
     private isAuthenticated = false;
+    
+    // Local progress tracking
+    private localProgressMs: number = 0;
+    private lastUpdateTime: number = 0;
+    private durationMs: number = 0;
+    private isPlaying: boolean = false;
+    private currentTrack?: any;
 
     constructor(private spotifyAPI: SpotifyAPI, private auth: SpotifyAuth) {
-        this.refreshInterval = vscode.workspace.getConfiguration('spotify').get('refreshInterval') || 5000;
+        this.refreshInterval = 3000; // Update from API every 3 seconds
         
         // Create status bar items from right to left (higher priority numbers appear more to the right)
         this.trackInfoItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 104);
@@ -48,6 +56,39 @@ export class StatusBarProvider implements vscode.Disposable {
         this.refreshTimer = setInterval(() => {
             this.updateStatusBar();
         }, this.refreshInterval);
+        
+        // Start local progress updates every second
+        this.startProgressUpdates();
+    }
+
+    private startProgressUpdates(): void {
+        if (this.progressTimer) {
+            clearInterval(this.progressTimer);
+        }
+        this.progressTimer = setInterval(() => {
+            this.updateLocalProgress();
+        }, 1000);
+    }
+
+    private stopProgressUpdates(): void {
+        if (this.progressTimer) {
+            clearInterval(this.progressTimer);
+            this.progressTimer = undefined;
+        }
+    }
+
+    private updateLocalProgress(): void {
+        if (!this.isPlaying || !this.currentTrack) {
+            return;
+        }
+
+        const now = Date.now();
+        const elapsed = now - this.lastUpdateTime;
+        this.localProgressMs += elapsed;
+        this.lastUpdateTime = now;
+
+        // Update tooltip with new progress
+        this.updateTooltip();
     }
 
     private async updateStatusBar(): Promise<void> {
@@ -66,27 +107,19 @@ export class StatusBarProvider implements vscode.Disposable {
                 const track = playback.item;
                 const artists = track.artists.map(a => a.name).join(', ');
                 
+                // Update local progress tracking
+                this.currentTrack = track;
+                this.localProgressMs = playback.progress_ms || 0;
+                this.lastUpdateTime = Date.now();
+                this.durationMs = track.duration_ms;
+                this.isPlaying = playback.is_playing;
+                
                 // Update track info
                 this.trackInfoItem.text = `🎵 ${track.name} - ${artists}`;
-                
-                // Create a MarkdownString tooltip with album artwork
-                const tooltip = new vscode.MarkdownString();
-                tooltip.supportHtml = true;
-                tooltip.isTrusted = true;
-                
-                // Add album artwork and track details side by side using HTML
-                if (track.album.images && track.album.images.length > 0) {
-                    const imageUrl = track.album.images[track.album.images.length - 1].url;
-                    tooltip.appendMarkdown(`<table><tr><td><img src="${imageUrl}" width="64" height="64"/></td><td><b>${track.name}</b><br/>by ${artists}<br/>from <i>${track.album.name}</i></td></tr></table>`);
-                } else {
-                    // Fallback if no image available
-                    tooltip.appendMarkdown(`**${track.name}**\n\n`);
-                    tooltip.appendMarkdown(`by ${artists}\n\n`);
-                    tooltip.appendMarkdown(`from *${track.album.name}*`);
-                }
-                
-                this.trackInfoItem.tooltip = tooltip;
                 this.trackInfoItem.command = 'spotify.showCurrentTrack';
+                
+                // Update tooltip
+                this.updateTooltip();
                 
                 // Update play/pause button
                 this.playPauseButton.text = playback.is_playing ? '⏸️' : '▶️';
@@ -95,6 +128,7 @@ export class StatusBarProvider implements vscode.Disposable {
                 
                 this.showControlButtons();
             } else {
+                this.currentTrack = undefined;
                 this.trackInfoItem.text = '🎵 No music playing';
                 this.trackInfoItem.tooltip = 'No Spotify playback detected';
                 this.trackInfoItem.command = 'spotify.showCurrentTrack';
@@ -108,6 +142,41 @@ export class StatusBarProvider implements vscode.Disposable {
                 console.error('Spotify update error:', error.message);
             }
         }
+    }
+
+    private updateTooltip(): void {
+        if (!this.currentTrack) {
+            return;
+        }
+
+        const track = this.currentTrack;
+        const artists = track.artists.map((a: any) => a.name).join(', ');
+        
+        // Create a MarkdownString tooltip with album artwork
+        const tooltip = new vscode.MarkdownString();
+        tooltip.supportHtml = true;
+        tooltip.isTrusted = true;
+        
+        // Add album artwork and track details side by side using HTML
+        if (track.album.images && track.album.images.length > 0) {
+            const imageUrl = track.album.images[track.album.images.length - 1].url;
+            tooltip.appendMarkdown(`<table><tr><td><img src="${imageUrl}" width="64" height="64"/></td><td><b>${track.name}</b><br/>by ${artists}<br/>from <i>${track.album.name}</i></td></tr></table>`);
+        } else {
+            // Fallback if no image available
+            tooltip.appendMarkdown(`**${track.name}**\n\n`);
+            tooltip.appendMarkdown(`by ${artists}\n\n`);
+            tooltip.appendMarkdown(`from *${track.album.name}*`);
+        }
+        
+        // Add progress bar with local progress
+        const progress = Math.min(this.localProgressMs / this.durationMs, 1);
+        const progressBarLength = 20;
+        const filledLength = Math.round(progress * progressBarLength);
+        const emptyLength = progressBarLength - filledLength;
+        const progressBar = '█'.repeat(filledLength) + '░'.repeat(emptyLength);
+        tooltip.appendMarkdown(`\n\n${progressBar}`);
+        
+        this.trackInfoItem.tooltip = tooltip;
     }
 
     private showAuthenticationRequired(): void {
@@ -133,6 +202,9 @@ export class StatusBarProvider implements vscode.Disposable {
     dispose(): void {
         if (this.refreshTimer) {
             clearInterval(this.refreshTimer);
+        }
+        if (this.progressTimer) {
+            clearInterval(this.progressTimer);
         }
         this.trackInfoItem.dispose();
         this.previousButton.dispose();

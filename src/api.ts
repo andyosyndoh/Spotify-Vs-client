@@ -6,6 +6,7 @@ export interface Track {
     name: string;
     artists: { name: string }[];
     album: { name: string; images: { url: string }[] };
+    duration_ms: number;
 }
 
 export interface PlaybackState {

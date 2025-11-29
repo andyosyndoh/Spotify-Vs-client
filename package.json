@@ -3,6 +3,26 @@
   "displayName": "Spotify Integration",
   "description": "Control Spotify playback and view friends' activity from VS Code",
   "version": "1.0.0",
+  "publisher": "andyosyndoh",
+  "author": {
+    "name": "Andy Osyndoh"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andyosyndoh/Spotify-Vs-client"
+  },
+  "bugs": {
+    "url": "https://github.com/andyosyndoh/Spotify-Vs-client/issues"
+  },
+  "homepage": "https://github.com/andyosyndoh/Spotify-Vs-client#readme",
+  "keywords": [
+    "spotify",
+    "music",
+    "playback",
+    "player",
+    "audio"
+  ],
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -43,6 +63,11 @@
       {
         "command": "spotify.showCurrentTrack",
         "title": "Show Current Track",
+        "category": "Spotify"
+      },
+      {
+        "command": "spotify.checkConfig",
+        "title": "Check Configuration",
         "category": "Spotify"
       }
     ],
