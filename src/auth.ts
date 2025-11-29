@@ -8,7 +8,7 @@ export class SpotifyAuth {
     private accessToken?: string;
     private refreshToken?: string;
     // Hardcoded Client ID - users don't need to configure anything!
-    private readonly clientId = 'YOUR_SPOTIFY_CLIENT_ID_HERE'; // Replace with your actual Client ID
+    private readonly clientId = '5bb9163097a242d5b287366fd4b28dd0';
     private readonly redirectUri = 'http://127.0.0.1:8080/callback';
     private server?: http.Server;
     private codeVerifier?: string;
