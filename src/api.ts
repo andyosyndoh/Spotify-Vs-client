@@ -41,7 +41,31 @@ export class SpotifyAPI {
 
             // Handle different status codes
             if (response.status === 401) {
-                throw new Error('Authentication required');
+                // Token expired - try to refresh it
+                console.log('Token expired, attempting to refresh...');
+                try {
+                    await this.auth.forceRefreshToken();
+                    // Retry the request with the new token
+                    const newToken = await this.auth.getAccessToken();
+                    if (newToken) {
+                        const retryResponse = await axios({
+                            method,
+                            url: `${this.baseUrl}${endpoint}`,
+                            headers: { Authorization: `Bearer ${newToken}` },
+                            data,
+                            validateStatus: (status) => status < 600
+                        });
+                        
+                        if (retryResponse.status === 204) return undefined;
+                        if (retryResponse.status >= 400) {
+                            throw new Error(`Spotify API error: ${retryResponse.statusText}`);
+                        }
+                        return retryResponse.data;
+                    }
+                } catch (refreshError) {
+                    console.error('Token refresh failed:', refreshError);
+                    throw new Error('Authentication required');
+                }
             } else if (response.status === 204) {
                 // No Content - successful operation (play, pause, next, previous)
                 return undefined;

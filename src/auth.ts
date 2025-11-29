@@ -216,4 +216,8 @@ export class SpotifyAuth {
             throw new Error('Authentication required');
         }
     }
+
+    async forceRefreshToken(): Promise<void> {
+        await this.refreshAccessToken();
+    }
 }
