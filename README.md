@@ -1,96 +1,104 @@
 # Spotify VS Code Extension
 
-Control Spotify playback and view friends' activity directly from VS Code.
+Control your Spotify playback directly from Visual Studio Code! View currently playing tracks, control playback, and see album artwork - all without leaving your editor.
 
-## Setup
+## ✨ Features
 
-### 1. Create Spotify App
-1. Go to https://developer.spotify.com/dashboard
-2. Create a new app
-3. Add redirect URI: `http://127.0.0.1:5500/test/spot.html`
-4. Copy your Client ID
+- 🎵 **Real-time Track Display** - See what's playing in your status bar
+- 🎨 **Album Artwork** - Hover over the song name to see album art and track details
+- 📊 **Live Progress Bar** - Watch your song progress in real-time
+- ⏯️ **Playback Controls** - Play, pause, skip tracks right from VS Code
+- ⚡ **Quick Access** - Control Spotify without switching windows
+- 🔐 **Secure OAuth** - Safe authentication with your Spotify account
 
-### 2. Configure Environment
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-2. Edit `.env` and add your Spotify Client ID:
-   ```
-   SPOTIFY_CLIENT_ID=your_actual_client_id_here
-   ```
+## 📸 Screenshots
 
-### 3. Run Development Simulator
-```bash
-npm run dev
-```
+![Status Bar](https://raw.githubusercontent.com/andyosyndoh/Spotify-Vs-client/main/images/statusbar.png)
 
-This will generate `test/spot-dev.html` with your client ID. Open it with Live Server in VS Code.
+## 🚀 Getting Started
 
-## Development
+### Prerequisites
+- Active Spotify account (Premium recommended for full playback control)
+- Spotify app running on any device (desktop, mobile, or web player)
 
-- **`npm run compile`** - Compile TypeScript extension code
-- **`npm run watch`** - Watch and compile TypeScript  
-- **`npm run build:html`** - Build HTML simulator with env variables
-- **`npm run dev`** - Build and show instructions to run simulator
+### Installation
 
-## Security
+1. **Install the extension** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=andyosyndoh.spotify-vscode)
 
-- `.env` file is git-ignored (contains your secret client ID)
-- `test/spot.html` is the template (safe to commit)
-- `test/spot-dev.html` is generated (git-ignored, contains secrets)
+2. **Authenticate with Spotify**:
+   - Click the Spotify icon in the status bar (bottom of VS Code)
+   - Or run command: `Spotify: Authenticate` (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+   - Your browser will open - log in and authorize the extension
+   - Return to VS Code - you're all set! 🎉
 
-## Features
+That's it! No configuration needed - just install and authenticate!
 
-### Core Functionality
-- **Playback Controls**: Play, pause, next, previous track
-- **Current Track Display**: Shows currently playing song in status bar
-- **Authentication**: Secure OAuth integration with Spotify
-- **Real-time Updates**: Automatic status bar updates
+## 🎮 Usage
+
+### Status Bar
+The status bar shows your currently playing track. Click it to see more details!
+
+Hover over the song name to see:
+- Album artwork
+- Artist and album information
+- Real-time progress bar
+
+### Controls
+Use the playback control buttons in the status bar:
+- ⏮️ Previous track
+- ⏸️ Play/Pause
+- ⏭️ Next track
 
 ### Commands
+Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) and search for:
 - `Spotify: Authenticate` - Connect your Spotify account
 - `Spotify: Play` - Resume playback
-- `Spotify: Pause` - Pause playback  
+- `Spotify: Pause` - Pause playback
 - `Spotify: Next Track` - Skip to next song
 - `Spotify: Previous Track` - Go to previous song
-- `Spotify: Show Current Track` - Display current track info
+- `Spotify: Show Current Track` - Display track info
 
 ### Keyboard Shortcuts
-- `Ctrl+Shift+P` (Mac: `Cmd+Shift+P`) - Play
-- `Ctrl+Shift+Space` (Mac: `Cmd+Shift+Space`) - Pause
+- `Ctrl+Shift+Space` (Mac: `Cmd+Shift+Space`) - Play/Pause
 - `Ctrl+Shift+Right` (Mac: `Cmd+Shift+Right`) - Next track
 - `Ctrl+Shift+Left` (Mac: `Cmd+Shift+Left`) - Previous track
 
-## Setup
+## ⚙️ Settings
 
-1. **Get Spotify Client ID**:
-   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-   - Create a new app
-   - Copy the Client ID
-   - Add `https://localhost:8080/callback` as a redirect URI
+| Setting | Description | Default |
+|---------|-------------|---------|
+| `spotify.refreshInterval` | How often to update track info (milliseconds) | 3000 |
 
-2. **Configure Extension**:
-   - Open VS Code settings
-   - Search for "Spotify"
-   - Set your Client ID in `spotify.clientId`
+## 🔧 Troubleshooting
 
-3. **Authenticate**:
-   - Run command `Spotify: Authenticate`
-   - Follow the OAuth flow in your browser
-   - Copy the authorization code back to VS Code
+### "No active playback device found"
+- Make sure Spotify is playing on at least one device (phone, desktop, web player)
+- Start playing a song on any Spotify app first
 
-## Development
+### Controls don't respond
+- Check that Spotify is actively playing on a device
+- Try refreshing by clicking the status bar
+- Reload VS Code window: `Developer: Reload Window`
 
-```bash
-npm install
-npm run compile
-```
+## 🤝 Contributing
 
-Press F5 to launch extension in development mode.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Requirements
+## 📄 License
 
-- VS Code 1.74.0 or higher
-- Active Spotify Premium account
-- Internet connection for API calls
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with the [Spotify Web API](https://developer.spotify.com/documentation/web-api)
+- Inspired by the need for seamless music control while coding
+
+## 📞 Support
+
+- 🐛 [Report a bug](https://github.com/andyosyndoh/Spotify-Vs-client/issues)
+- 💡 [Request a feature](https://github.com/andyosyndoh/Spotify-Vs-client/issues)
+- ⭐ [Star on GitHub](https://github.com/andyosyndoh/Spotify-Vs-client)
+
+---
+
+**Enjoy coding with your favorite music!** 🎵✨
