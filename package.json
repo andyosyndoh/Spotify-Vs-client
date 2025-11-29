@@ -99,7 +99,7 @@
       "properties": {
         "spotify.refreshInterval": {
           "type": "number",
-          "default": 5000,
+          "default": 10000,
           "description": "Refresh interval for current track (milliseconds)"
         }
       }

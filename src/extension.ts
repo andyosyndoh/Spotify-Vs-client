@@ -28,6 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('spotify.next', () => spotifyAPI.next()),
         vscode.commands.registerCommand('spotify.previous', () => spotifyAPI.previous()),
         vscode.commands.registerCommand('spotify.showCurrentTrack', () => spotifyAPI.showCurrentTrack()),
+        vscode.commands.registerCommand('spotify.forceUpdate', () => statusBarProvider.forceUpdate()),
         vscode.commands.registerCommand('spotify.checkConfig', () => {
             const clientId = vscode.workspace.getConfiguration('spotify').get('clientId');
             const clientSecret = vscode.workspace.getConfiguration('spotify').get('clientSecret');
