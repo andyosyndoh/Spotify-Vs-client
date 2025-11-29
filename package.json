@@ -1,7 +1,7 @@
 {
   "name": "spotify-vscode",
   "displayName": "Spotify Integration",
-  "description": "Control Spotify playback and view friends' activity from VS Code",
+  "description": "Control Spotify playback directly from VS Code with real-time track display and album artwork",
   "version": "1.0.0",
   "publisher": "andyosyndoh",
   "author": {
@@ -93,15 +93,6 @@
         "mac": "cmd+shift+left"
       }
     ],
-    "views": {
-      "explorer": [
-        {
-          "id": "spotifyFriends",
-          "name": "Spotify Friends",
-          "when": "spotify:authenticated"
-        }
-      ]
-    },
     "configuration": {
       "title": "Spotify",
       "properties": {
