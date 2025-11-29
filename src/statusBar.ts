@@ -176,9 +176,13 @@ export class StatusBarProvider implements vscode.Disposable {
         } catch (error: any) {
             if (error.message === 'Authentication required') {
                 this.showAuthenticationRequired();
+            } else if (error.message?.includes('timed out') || error.message?.includes('ETIMEDOUT')) {
+                // Network timeout - silently keep current state, don't spam console
+                // The status bar will just show the last known state
+                return;
             } else {
                 // Keep current state for other errors (network issues, etc.)
-                console.error('Spotify update error:', error.message);
+                console.error('Spotify update error:', error.message || error.toString() || 'Unknown error');
             }
         }
     }
