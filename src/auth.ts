@@ -9,7 +9,7 @@ export class SpotifyAuth {
     private refreshToken?: string;
     // Hardcoded Client ID - users don't need to configure anything!
     private readonly clientId = '5bb9163097a242d5b287366fd4b28dd0';
-    private readonly redirectUri = 'http://127.0.0.1:8080/callback';
+    private readonly redirectUri = 'http://127.0.0.1:6721/callback';
     private server?: http.Server;
     private codeVerifier?: string;
 
@@ -98,7 +98,7 @@ export class SpotifyAuth {
                 }
             });
 
-            this.server.listen(8080, '127.0.0.1', () => {
+            this.server.listen(6721, '127.0.0.1', () => {
                 const scopes = 'user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played';
                 const authUrl = `https://accounts.spotify.com/authorize?` +
                     `client_id=${this.clientId}` +

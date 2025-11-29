@@ -66,8 +66,8 @@ Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) and search for:
 ## ⚙️ Settings
 
 | Setting | Description | Default |
-|---------|-------------|---------|
-| `spotify.refreshInterval` | How often to update track info (milliseconds) | 10000 |
+|---------|-------------|---------||
+| `spotify.refreshInterval` | How often to update track info (milliseconds) | 5000 |
 
 ## 🔧 Troubleshooting
 
