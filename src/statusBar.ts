@@ -25,10 +25,11 @@ export class StatusBarProvider implements vscode.Disposable {
         this.refreshInterval = 5000; // Update from API every 5 seconds
         
         // Create status bar items from right to left (higher priority numbers appear more to the right)
-        this.trackInfoItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 104);
-        this.previousButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 103);
-        this.playPauseButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 102);
-        this.nextButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 101);
+        // Changed order: buttons first (higher priority), then track info
+        this.previousButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 104);
+        this.playPauseButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 103);
+        this.nextButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 102);
+        this.trackInfoItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 101);
         
         this.setupStatusBarItems();
         this.startRefresh();
