@@ -149,7 +149,7 @@ export class SpotifyAPI {
     async play(): Promise<void> {
         try {
             await this.makeRequest('/me/player/play', 'PUT');
-            vscode.window.setStatusBarMessage('$(unmute) Playing...', 2000);
+            vscode.window.showInformationMessage('▶️ Playing');
         } catch (error: any) {
             // Silently ignore timeout errors - they happen, no need to spam
             if (error.message?.includes('timed out')) {
@@ -168,7 +168,7 @@ export class SpotifyAPI {
     async pause(): Promise<void> {
         try {
             await this.makeRequest('/me/player/pause', 'PUT');
-            vscode.window.setStatusBarMessage('$(debug-pause) Paused', 2000);
+            vscode.window.showInformationMessage('⏸️ Paused');
         } catch (error: any) {
             if (error.message?.includes('timed out')) {
                 return;
@@ -185,7 +185,7 @@ export class SpotifyAPI {
     async next(): Promise<void> {
         try {
             await this.makeRequest('/me/player/next', 'POST');
-            vscode.window.setStatusBarMessage('$(chevron-right) Next track', 2000);
+            vscode.window.showInformationMessage('⏭️ Next track');
         } catch (error: any) {
             if (error.message?.includes('timed out')) {
                 return;
@@ -202,7 +202,7 @@ export class SpotifyAPI {
     async previous(): Promise<void> {
         try {
             await this.makeRequest('/me/player/previous', 'POST');
-            vscode.window.setStatusBarMessage('$(chevron-left) Previous track', 2000);
+            vscode.window.showInformationMessage('⏮️ Previous track');
         } catch (error: any) {
             if (error.message?.includes('timed out')) {
                 return;

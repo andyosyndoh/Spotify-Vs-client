@@ -19,9 +19,10 @@ export class StatusBarProvider implements vscode.Disposable {
     private durationMs: number = 0;
     private isPlaying: boolean = false;
     private currentTrack?: any;
+    private lastTooltipUpdate: number = 0;
 
     constructor(private spotifyAPI: SpotifyAPI, private auth: SpotifyAuth) {
-        this.refreshInterval = 10000; // Update from API every 10 seconds
+        this.refreshInterval = 5000; // Update from API every 5 seconds
         
         // Create status bar items from right to left (higher priority numbers appear more to the right)
         this.trackInfoItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 104);
@@ -118,8 +119,11 @@ export class StatusBarProvider implements vscode.Disposable {
             this.localProgressMs = Math.min(this.localProgressMs, this.durationMs);
         }
 
-        // Update tooltip with new progress
-        this.updateTooltip();
+        // Only update tooltip every 5 seconds to prevent flickering
+        if (now - this.lastTooltipUpdate >= 5000) {
+            this.updateTooltip();
+            this.lastTooltipUpdate = now;
+        }
     }
 
     private async updateStatusBar(): Promise<void> {
@@ -151,6 +155,7 @@ export class StatusBarProvider implements vscode.Disposable {
                 
                 // Update tooltip
                 this.updateTooltip();
+                this.lastTooltipUpdate = Date.now();
                 
                 // Update play/pause button
                 this.playPauseButton.text = playback.is_playing ? '⏸️' : '▶️';
@@ -211,15 +216,14 @@ export class StatusBarProvider implements vscode.Disposable {
             tooltip.appendMarkdown(`from *${track.album.name}*`);
         }
         
-        // Add progress bar with local progress
-        const progress = Math.min(this.localProgressMs / this.durationMs, 1);
-        const progressBarLength = 20;
-        const filledLength = Math.round(progress * progressBarLength);
-        const emptyLength = progressBarLength - filledLength;
-        const progressBar = '▰'.repeat(filledLength) + '▱'.repeat(emptyLength);
-        tooltip.appendMarkdown(`\n\n${progressBar}`);
-        
         this.trackInfoItem.tooltip = tooltip;
+    }
+
+    private formatTime(ms: number): string {
+        const totalSeconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 
     private showAuthenticationRequired(): void {
