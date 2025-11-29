@@ -104,11 +104,9 @@ export class SpotifyAPI {
     async play(): Promise<void> {
         try {
             await this.makeRequest('/me/player/play', 'PUT');
-            // Small delay to let Spotify process the command
-            await new Promise(resolve => setTimeout(resolve, 300));
             vscode.window.showInformationMessage('▶️ Playing');
-            // Trigger immediate status update
-            vscode.commands.executeCommand('spotify.forceUpdate');
+            // Trigger immediate status update (non-blocking)
+            setTimeout(() => vscode.commands.executeCommand('spotify.forceUpdate'), 300);
         } catch (error: any) {
             vscode.window.showErrorMessage(`Play failed: ${error.message}`);
             throw error;
@@ -118,10 +116,9 @@ export class SpotifyAPI {
     async pause(): Promise<void> {
         try {
             await this.makeRequest('/me/player/pause', 'PUT');
-            await new Promise(resolve => setTimeout(resolve, 300));
             vscode.window.showInformationMessage('⏸️ Paused');
-            // Trigger immediate status update
-            vscode.commands.executeCommand('spotify.forceUpdate');
+            // Trigger immediate status update (non-blocking)
+            setTimeout(() => vscode.commands.executeCommand('spotify.forceUpdate'), 300);
         } catch (error: any) {
             vscode.window.showErrorMessage(`Pause failed: ${error.message}`);
             throw error;
@@ -131,10 +128,9 @@ export class SpotifyAPI {
     async next(): Promise<void> {
         try {
             await this.makeRequest('/me/player/next', 'POST');
-            await new Promise(resolve => setTimeout(resolve, 500));
             vscode.window.showInformationMessage('⏭️ Next track');
-            // Trigger immediate status update
-            vscode.commands.executeCommand('spotify.forceUpdate');
+            // Trigger immediate status update (non-blocking)
+            setTimeout(() => vscode.commands.executeCommand('spotify.forceUpdate'), 500);
         } catch (error: any) {
             vscode.window.showErrorMessage(`Next failed: ${error.message}`);
             throw error;
@@ -144,10 +140,9 @@ export class SpotifyAPI {
     async previous(): Promise<void> {
         try {
             await this.makeRequest('/me/player/previous', 'POST');
-            await new Promise(resolve => setTimeout(resolve, 500));
             vscode.window.showInformationMessage('⏮️ Previous track');
-            // Trigger immediate status update
-            vscode.commands.executeCommand('spotify.forceUpdate');
+            // Trigger immediate status update (non-blocking)
+            setTimeout(() => vscode.commands.executeCommand('spotify.forceUpdate'), 500);
         } catch (error: any) {
             vscode.window.showErrorMessage(`Previous failed: ${error.message}`);
             throw error;

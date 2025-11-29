@@ -11,6 +11,7 @@ export class StatusBarProvider implements vscode.Disposable {
     private progressTimer?: NodeJS.Timeout;
     private refreshInterval: number;
     private isAuthenticated = false;
+    private updateDebounceTimer?: NodeJS.Timeout;
     
     // Local progress tracking
     private localProgressMs: number = 0;
@@ -62,24 +63,34 @@ export class StatusBarProvider implements vscode.Disposable {
     }
 
     public async forceUpdate(): Promise<void> {
-        // Clear existing timer
-        if (this.refreshTimer) {
-            clearInterval(this.refreshTimer);
+        // Debounce: if called multiple times rapidly, only execute the last one
+        if (this.updateDebounceTimer) {
+            clearTimeout(this.updateDebounceTimer);
         }
         
-        // Update immediately
-        await this.updateStatusBar();
-        
-        // Restart timer
-        this.refreshTimer = setInterval(() => {
-            this.updateStatusBar();
-        }, this.refreshInterval);
+        this.updateDebounceTimer = setTimeout(async () => {
+            // Clear existing timer
+            if (this.refreshTimer) {
+                clearInterval(this.refreshTimer);
+            }
+            
+            // Update immediately
+            await this.updateStatusBar();
+            
+            // Restart timer
+            this.refreshTimer = setInterval(() => {
+                this.updateStatusBar();
+            }, this.refreshInterval);
+            
+            this.updateDebounceTimer = undefined;
+        }, 100); // 100ms debounce delay
     }
 
     private startProgressUpdates(): void {
         if (this.progressTimer) {
             clearInterval(this.progressTimer);
         }
+        this.lastUpdateTime = Date.now();
         this.progressTimer = setInterval(() => {
             this.updateLocalProgress();
         }, 1000);
@@ -101,6 +112,11 @@ export class StatusBarProvider implements vscode.Disposable {
         const elapsed = now - this.lastUpdateTime;
         this.localProgressMs += elapsed;
         this.lastUpdateTime = now;
+
+        // Cap progress at duration to prevent overflow
+        if (this.durationMs > 0) {
+            this.localProgressMs = Math.min(this.localProgressMs, this.durationMs);
+        }
 
         // Update tooltip with new progress
         this.updateTooltip();
@@ -141,12 +157,20 @@ export class StatusBarProvider implements vscode.Disposable {
                 this.playPauseButton.command = playback.is_playing ? 'spotify.pause' : 'spotify.play';
                 this.playPauseButton.tooltip = playback.is_playing ? 'Pause' : 'Play';
                 
+                // Start/stop progress updates based on playback state
+                if (playback.is_playing) {
+                    this.startProgressUpdates();
+                } else {
+                    this.stopProgressUpdates();
+                }
+                
                 this.showControlButtons();
             } else {
                 this.currentTrack = undefined;
                 this.trackInfoItem.text = '🎵 No music playing';
                 this.trackInfoItem.tooltip = 'No Spotify playback detected';
                 this.trackInfoItem.command = 'spotify.showCurrentTrack';
+                this.stopProgressUpdates();
                 this.hideControlButtons();
             }
         } catch (error: any) {
@@ -220,6 +244,9 @@ export class StatusBarProvider implements vscode.Disposable {
         }
         if (this.progressTimer) {
             clearInterval(this.progressTimer);
+        }
+        if (this.updateDebounceTimer) {
+            clearTimeout(this.updateDebounceTimer);
         }
         this.trackInfoItem.dispose();
         this.previousButton.dispose();
