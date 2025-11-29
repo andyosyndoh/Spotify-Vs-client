@@ -173,7 +173,7 @@ export class StatusBarProvider implements vscode.Disposable {
         const progressBarLength = 20;
         const filledLength = Math.round(progress * progressBarLength);
         const emptyLength = progressBarLength - filledLength;
-        const progressBar = '█'.repeat(filledLength) + '░'.repeat(emptyLength);
+        const progressBar = '▰'.repeat(filledLength) + '▱'.repeat(emptyLength);
         tooltip.appendMarkdown(`\n\n${progressBar}`);
         
         this.trackInfoItem.tooltip = tooltip;
