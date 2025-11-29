@@ -20,7 +20,7 @@ export class StatusBarProvider implements vscode.Disposable {
     private currentTrack?: any;
 
     constructor(private spotifyAPI: SpotifyAPI, private auth: SpotifyAuth) {
-        this.refreshInterval = 3000; // Update from API every 3 seconds
+        this.refreshInterval = 10000; // Update from API every 10 seconds
         
         // Create status bar items from right to left (higher priority numbers appear more to the right)
         this.trackInfoItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 104);
