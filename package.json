@@ -42,6 +42,11 @@
         "category": "Spotify"
       },
       {
+        "command": "spotify.logout",
+        "title": "Logout from Spotify",
+        "category": "Spotify"
+      },
+      {
         "command": "spotify.play",
         "title": "Play",
         "category": "Spotify"

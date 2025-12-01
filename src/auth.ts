@@ -220,4 +220,19 @@ export class SpotifyAuth {
     async forceRefreshToken(): Promise<void> {
         await this.refreshAccessToken();
     }
+
+    async logout(): Promise<void> {
+        // Clear in-memory tokens
+        this.accessToken = undefined;
+        this.refreshToken = undefined;
+        
+        // Clear stored tokens
+        await this.context.secrets.delete('spotify.accessToken');
+        await this.context.secrets.delete('spotify.refreshToken');
+        
+        // Update authentication context
+        vscode.commands.executeCommand('setContext', 'spotify:authenticated', false);
+        
+        vscode.window.showInformationMessage('Successfully logged out from Spotify');
+    }
 }

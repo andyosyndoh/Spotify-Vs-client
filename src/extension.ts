@@ -23,6 +23,15 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showErrorMessage(`Authentication failed: ${error}`);
             }
         }),
+        vscode.commands.registerCommand('spotify.logout', async () => {
+            try {
+                await spotifyAuth.logout();
+                statusBarProvider.dispose();
+            } catch (error) {
+                console.error('Logout error:', error);
+                vscode.window.showErrorMessage(`Logout failed: ${error}`);
+            }
+        }),
         vscode.commands.registerCommand('spotify.play', () => spotifyAPI.play()),
         vscode.commands.registerCommand('spotify.pause', () => spotifyAPI.pause()),
         vscode.commands.registerCommand('spotify.next', () => spotifyAPI.next()),
