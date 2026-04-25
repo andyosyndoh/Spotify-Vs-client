@@ -468,6 +468,7 @@
                 0 0 0 1px rgba(255, 255, 255, 0.04) inset,
                 0 0 90px rgba(var(--track-glow-rgb, 29, 185, 84), 0.26);
             transform: translateX(-90px) scale(0.97);
+            opacity: 0;
             overflow: hidden;
         }
 
@@ -508,7 +509,7 @@
         }
 
         .track-change-overlay.visible .track-change-card {
-            animation: trackChangeReveal 3s cubic-bezier(0.22, 1, 0.36, 1);
+            animation: trackChangeReveal 3.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .track-change-kicker {
@@ -599,10 +600,12 @@
         .fs-qr-container {
             width: 100%;
             max-width: 220px;
-            background: rgba(255, 255, 255, 0.94);
+            background: rgba(var(--track-glow-rgb, 29, 185, 84), 0.18);
+            border: 1.5px solid rgba(var(--track-glow-rgb, 29, 185, 84), 0.38);
             padding: 14px;
             border-radius: 18px;
-            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.36);
+            box-shadow: 0 8px 28px rgba(var(--track-glow-rgb, 29, 185, 84), 0.28), 0 16px 36px rgba(0, 0, 0, 0.36);
+            transition: background 0.8s ease, box-shadow 0.8s ease, border-color 0.8s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -610,7 +613,7 @@
         }
 
         .fs-qr-title {
-            color: #101010;
+            color: rgba(255, 255, 255, 0.9);
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.08em;
@@ -1535,8 +1538,13 @@
 
                 document.getElementById('status-message').textContent = `Now controlling: ${songName} by ${artistName}`;
 
-                if (trackChanged && document.fullscreenElement) {
-                    showTrackChangeOverlay(artistName, songName, albumArt);
+                if (trackChanged) {
+                    sampleImageGlowColor(albumArt).then(rgb => {
+                        document.documentElement.style.setProperty('--track-glow-rgb', rgb);
+                    });
+                    if (document.fullscreenElement) {
+                        showTrackChangeOverlay(artistName, songName, albumArt);
+                    }
                 }
 
                 // Update new features
@@ -1628,7 +1636,9 @@
             artistEl.textContent = artistName;
             songEl.textContent = songName;
             artEl.src = albumArt || '';
-            overlay.style.setProperty('--track-glow-rgb', await sampleImageGlowColor(albumArt));
+            const glowRgb = await sampleImageGlowColor(albumArt);
+            overlay.style.setProperty('--track-glow-rgb', glowRgb);
+            document.documentElement.style.setProperty('--track-glow-rgb', glowRgb);
             overlay.classList.remove('visible');
             document.body.classList.add('track-overlay-active');
 
@@ -1643,7 +1653,7 @@
             trackChangeOverlayTimeout = setTimeout(() => {
                 overlay.classList.remove('visible');
                 document.body.classList.remove('track-overlay-active');
-            }, 3000);
+            }, 3600);
         }
 
         // Function to update progress bar locally (between API calls)
