@@ -56,8 +56,7 @@
             filter: blur(20px) brightness(0.3);
             z-index: -1;
             transition: all 0.8s ease;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
+            image-rendering: auto;
         }
 
         .cont {
@@ -352,10 +351,11 @@
 
         /* Fullscreen Mode Styles */
         body.fullscreen-mode .background-image {
-            filter: none !important;
+            filter: blur(40px) brightness(0.35) saturate(1.2) !important;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            transform: scale(1.1);
         }
 
         body.fullscreen-mode .main-content {
@@ -396,166 +396,587 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        /* Fullscreen Controls Overlay */
-        .fullscreen-controls {
+        .vibe-signature {
+            position: fixed;
+            top: 26px;
+            left: 30px;
+            z-index: 340;
+            display: none;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.34);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(14px);
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+        }
+
+        body.fullscreen-mode .vibe-signature {
+            display: block;
+        }
+
+        .track-change-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 360;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 32px 40px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        .track-change-overlay.visible {
+            opacity: 1;
+        }
+
+        body.track-overlay-active .background-image {
+            filter: blur(56px) brightness(0.22) saturate(1.28) !important;
+        }
+
+        .track-change-backdrop {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 16% 48%, rgba(var(--track-glow-rgb, 29, 185, 84), 0.36), transparent 34%),
+                radial-gradient(circle at 82% 14%, rgba(255, 255, 255, 0.08), transparent 26%),
+                rgba(4, 4, 6, 0.34);
+            backdrop-filter: blur(38px) saturate(1.12);
+            -webkit-backdrop-filter: blur(38px) saturate(1.12);
+        }
+
+        .track-change-card {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+            align-items: center;
+            gap: 24px;
+            width: min(84vw, 920px);
+            padding: 24px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, rgba(8, 8, 8, 0.82), rgba(20, 20, 24, 0.42));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(24px);
+            box-shadow:
+                0 28px 90px rgba(0, 0, 0, 0.45),
+                0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+                0 0 90px rgba(var(--track-glow-rgb, 29, 185, 84), 0.26);
+            transform: translateX(-90px) scale(0.97);
+            overflow: hidden;
+        }
+
+        .track-change-card::after {
+            content: '';
+            position: absolute;
+            right: -16%;
+            bottom: -34%;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(var(--track-glow-rgb, 29, 185, 84), 0.42), transparent 70%);
+            filter: blur(12px);
+            pointer-events: none;
+        }
+
+        .track-change-art-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 22px 42px rgba(0, 0, 0, 0.34);
+            z-index: 1;
+        }
+
+        .track-change-art {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .track-change-copy {
+            position: relative;
+            z-index: 1;
+        }
+
+        .track-change-overlay.visible .track-change-card {
+            animation: trackChangeReveal 3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .track-change-kicker {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .track-change-artist {
+            font-size: clamp(38px, 7vw, 92px);
+            font-weight: 700;
+            line-height: 0.94;
+            color: white;
+            text-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+            word-break: break-word;
+        }
+
+        .track-change-song {
+            font-size: clamp(14px, 1.8vw, 20px);
+            color: rgba(255, 255, 255, 0.68);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        @keyframes trackChangeReveal {
+            0% {
+                opacity: 0;
+                transform: translateX(-90px) scale(0.96);
+                filter: blur(10px);
+            }
+            12% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+                filter: blur(0);
+            }
+            78% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+                filter: blur(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(38px) scale(1.01);
+                filter: blur(8px);
+            }
+        }
+
+        /* ── Fullscreen Two-Panel Layout ── */
+        .fs-panel {
             display: none;
             position: fixed;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 250;
+            inset: 0;
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+        }
+
+        body.fullscreen-mode .fs-panel {
+            display: flex;
+        }
+
+        /* Left panel: artist card */
+        .fs-left {
+            flex: 0 0 52%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            height: 100vh;
+            padding: 20px 20px 20px 60px;
+        }
+
+        .fs-artist-card {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+        }
+
+        .fs-qr-container {
+            width: 100%;
+            max-width: 220px;
+            background: rgba(255, 255, 255, 0.94);
+            padding: 14px;
+            border-radius: 18px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.36);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fs-qr-title {
+            color: #101010;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        #fs-qr-code {
+            width: 160px;
+            height: 160px;
+        }
+
+        #fs-qr-code img {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .fs-artist-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            image-rendering: auto;
+        }
+
+        .fs-artist-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 45%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 24px 22px;
+            color: white;
+        }
+
+        .fs-artist-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            color: rgba(255, 255, 255, 0.55);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .fs-artist-big-name {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .fs-genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .genre-tag {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-transform: capitalize;
+            letter-spacing: 0.3px;
+        }
+
+        .fs-meta {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .fs-bio {
+            font-size: 12px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.65);
+            display: -webkit-box;
+            line-clamp: 4;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            padding-top: 10px;
+            margin-top: 2px;
+        }
+
+        /* Right panel: album art + track info + controls */
+        .fs-right {
+            flex: 0 0 48%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 44px 60px 28px 48px;
+            gap: 20px;
+            height: 100vh;
+        }
+
+        .fs-album-art {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .fs-track-block {
+            text-align: center;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .fs-song-name {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 420px;
+        }
+
+        .fs-artist-name {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 4px;
+        }
+
+        .fs-album-name {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+        }
+
+        .fs-progress-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 520px;
+            margin-top: auto;
+            padding-top: 8px;
+        }
+
+        .fs-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            min-width: 36px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .fs-progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .fs-progress-fill {
+            height: 100%;
+            background: #1DB954;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .fs-controls {
+            display: flex;
+            align-items: center;
+            gap: 24px;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
         }
 
-        body.fullscreen-mode .fullscreen-controls {
-            display: flex;
-        }
-
-        body.fullscreen-mode.show-controls .fullscreen-controls {
+        body.fullscreen-mode.show-controls .fs-controls {
             opacity: 1;
             pointer-events: auto;
         }
 
-        body.fullscreen-mode .fullscreen-controls .controls-bottom {
-            display: flex;
-            padding-bottom: 0;
-        }
-
-        body.fullscreen-mode .fullscreen-controls .control-button {
-            background: rgba(255, 255, 255, 0.15);
+        .fs-controls .control-button {
+            background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
         }
 
-        body.fullscreen-mode .fullscreen-controls .control-button:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: scale(1.15);
+        .fs-controls .control-button:hover {
+            background: rgba(255, 255, 255, 0.22);
+            border-color: rgba(255, 255, 255, 0.45);
+            transform: scale(1.12);
         }
 
-        body.fullscreen-mode .fullscreen-controls .control-button.play-pause {
+        .fs-controls .control-button.play-pause {
             background: rgba(29, 185, 84, 0.9);
-            backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
         }
 
-        body.fullscreen-mode .fullscreen-controls .control-button.play-pause:hover {
-            background: rgba(30, 215, 96, 0.95);
-            box-shadow: 0 8px 40px rgba(29, 185, 84, 0.6);
+        .fs-album-wrap {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+            flex-shrink: 0;
         }
 
-        /* Fullscreen Bottom Left Info */
-        .fullscreen-info {
-            display: none;
-            position: fixed;
-            bottom: 140px;
-            left: 40px;
-            z-index: 200;
-            align-items: center;
-            gap: 20px;
+        .fs-controls .control-button.play-pause:hover {
+            background: #1ed760;
+            box-shadow: 0 8px 36px rgba(29, 185, 84, 0.55);
         }
 
-        body.fullscreen-mode .fullscreen-info {
-            display: flex;
-        }
-
-        .fullscreen-album-art {
-            width: 120px;
-            height: 120px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-            object-fit: cover;
-        }
-
-        .fullscreen-track-info {
-            color: white;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
-        }
-
-        .fullscreen-track-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .fullscreen-track-artist {
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        /* Fullscreen QR Code Adjustments */
-        body.fullscreen-mode .qr-container {
-            bottom: 140px;
-            right: 40px;
-            padding: 10px;
-        }
-
-        body.fullscreen-mode #qr-code {
-            width: 100px;
-            height: 100px;
-        }
-
-        body.fullscreen-mode .qr-title {
-            font-size: 10px;
-            margin-bottom: 5px;
-        }
-
-        /* Fullscreen Progress Bar */
-        .fullscreen-progress {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+        .fs-album-details {
             width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            z-index: 150;
+            max-width: 520px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 16px;
+            backdrop-filter: blur(18px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+            padding: 16px;
         }
 
-        body.fullscreen-mode .fullscreen-progress {
-            display: block;
+        .fs-album-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
         }
 
-        .fullscreen-progress-fill {
-            height: 100%;
-            background: #1DB954;
-            width: 0%;
-            transition: width 0.3s ease;
+        .fs-detail-card {
+            min-height: 86px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+        }
+
+        .fs-stat-label,
+        .fs-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.45);
+            margin-bottom: 8px;
+        }
+
+        .fs-stat-value {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .fs-stat-subvalue {
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .fs-top-tracks {
+            width: 100%;
+            max-width: 520px;
+            padding: 16px;
+        }
+
+        .fs-top-track-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .fs-top-track-item {
+            display: grid;
+            grid-template-columns: 24px minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            padding: 8px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .fs-top-track-item:first-child {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .fs-top-track-rank {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .fs-top-track-name {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fs-top-track-meta {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 11px;
+        }
+
+        /* Hide QR in fullscreen */
+        body.fullscreen-mode .qr-container {
+            display: none;
         }
 
         /* Responsive adjustments */
         @media (max-width: 1024px) {
-            .album-art-main {
-                width: 350px;
-                height: 350px;
-            }
+            .album-art-main { width: 350px; height: 350px; }
+            .fs-left { padding: 30px 0 30px 40px; }
+            .fs-right { padding: 30px 40px; }
+            .fs-artist-card { max-width: 520px; }
+            .fs-album-wrap { width: 220px; height: 220px; }
+            .fs-song-name { font-size: 22px; max-width: 320px; }
+            .fs-album-details,
+            .fs-top-tracks { max-width: 420px; }
         }
 
         @media (max-width: 768px) {
-            .qr-container {
-                display: none;
+            .qr-container { display: none; }
+            .album-art-main { width: 300px; height: 300px; }
+            .fs-panel { flex-direction: column-reverse; }
+            .fs-left { flex: 0; display: none; }
+            .fs-right { flex: 1; padding: 20px; height: auto; width: 100%; }
+            .fs-album-wrap { width: 180px; height: 180px; }
+            .fs-song-name { font-size: 18px; max-width: 260px; }
+            .fs-album-details-grid { grid-template-columns: 1fr; }
+            .vibe-signature {
+                top: 16px;
+                left: 16px;
+                right: 16px;
+                text-align: center;
+                letter-spacing: 0.08em;
             }
-            
-            .album-art-main {
-                width: 300px;
-                height: 300px;
+            .track-change-overlay {
+                padding: 20px;
             }
-
-            body.fullscreen-mode .fullscreen-album-art {
-                width: 80px;
-                height: 80px;
+            .track-change-card {
+                grid-template-columns: 86px minmax(0, 1fr);
+                gap: 16px;
+                width: 100%;
+                padding: 18px;
             }
-
-            body.fullscreen-mode .fullscreen-track-title {
-                font-size: 18px;
+            .fs-qr-container {
+                max-width: 180px;
+                padding: 12px;
             }
-
-            body.fullscreen-mode .fullscreen-track-artist {
-                font-size: 14px;
+            #fs-qr-code {
+                width: 132px;
+                height: 132px;
             }
         }
     </style>
@@ -563,6 +984,20 @@
 
 <body>
     <div class="background-image" id="background-image"></div>
+    <div class="vibe-signature" id="vibe-signature">Let's Vibe by Andy Osyndoh</div>
+    <div class="track-change-overlay" id="track-change-overlay" aria-hidden="true">
+        <div class="track-change-backdrop"></div>
+        <div class="track-change-card">
+            <div class="track-change-art-wrap">
+                <img class="track-change-art" id="track-change-art" src="" alt="Album Art">
+            </div>
+            <div class="track-change-copy">
+                <div class="track-change-kicker">Now Vibing</div>
+                <div class="track-change-artist" id="track-change-artist">...</div>
+                <div class="track-change-song" id="track-change-song">...</div>
+            </div>
+        </div>
+    </div>
     
     <div class="cont">
         <div class="header">
@@ -628,33 +1063,75 @@
             <div id="qr-code"></div>
         </div>
 
-        <!-- Fullscreen Mode Info (Bottom Left) -->
-        <div class="fullscreen-info" id="fullscreen-info">
-            <img id="fullscreen-album-art" class="fullscreen-album-art" src="" alt="Album Art">
-            <div class="fullscreen-track-info">
-                <div class="fullscreen-track-title" id="fullscreen-song-name">...</div>
-                <div class="fullscreen-track-artist" id="fullscreen-artist-name">...</div>
+        <!-- Fullscreen Two-Panel Layout -->
+        <div class="fs-panel" id="fs-panel">
+            <!-- Left: artist image card -->
+            <div class="fs-left">
+                <div class="fs-artist-card" id="fs-artist-card">
+                    <img id="fs-artist-img" class="fs-artist-img" src="" alt="Artist">
+                    <div class="fs-artist-overlay">
+                        <div class="fs-artist-label">Artist</div>
+                        <div class="fs-artist-big-name" id="fs-artist-big-name">...</div>
+                        <div class="fs-genres" id="fs-genres"></div>
+                        <div class="fs-meta" id="fs-meta"></div>
+                        <div class="fs-bio" id="fs-bio"></div>
+                    </div>
+                </div>
+                <div class="fs-qr-container hidden" id="fs-qr-container">
+                    <div class="fs-qr-title">Scan to Play</div>
+                    <div id="fs-qr-code"></div>
+                </div>
             </div>
-        </div>
-
-        <!-- Fullscreen Playback Controls (Center) -->
-        <div class="fullscreen-controls" id="fullscreen-controls">
-            <div class="controls-bottom">
-                <button class="control-button" onclick="controlPlayback('previous')">
-                    <i class="fas fa-step-backward"></i>
-                </button>
-                <button id="fullscreen-play-pause-button" class="control-button play-pause" onclick="togglePlayback()">
-                    <i class="fas fa-play" id="fullscreen-play-pause-icon"></i>
-                </button>
-                <button class="control-button" onclick="controlPlayback('next')">
-                    <i class="fas fa-step-forward"></i>
-                </button>
+            <!-- Right: album art + track info + progress + controls -->
+            <div class="fs-right">
+                <div class="fs-album-wrap">
+                    <img id="fs-album-art-img" class="fs-album-art" src="" alt="Album Art">
+                </div>
+                <div class="fs-track-block">
+                    <div class="fs-song-name" id="fs-song-name">...</div>
+                    <div class="fs-artist-name" id="fs-artist-name">...</div>
+                    <div class="fs-album-name" id="fs-album-name"></div>
+                </div>
+                <div class="fs-controls" id="fs-controls">
+                    <!--
+                    <button class="control-button" onclick="controlPlayback('previous')">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button id="fs-play-pause-btn" class="control-button play-pause" onclick="togglePlayback()">
+                        <i class="fas fa-play" id="fs-play-pause-icon"></i>
+                    </button>
+                    <button class="control-button" onclick="controlPlayback('next')">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                    -->
+                </div>
+                <div class="fs-album-details">
+                    <div class="fs-section-label">Album Details</div>
+                    <div class="fs-album-details-grid">
+                        <div class="fs-detail-card">
+                            <div class="fs-stat-label">Released</div>
+                            <div class="fs-stat-value" id="fs-album-release">-</div>
+                            <div class="fs-stat-subvalue" id="fs-album-type">-</div>
+                        </div>
+                        <div class="fs-detail-card">
+                            <div class="fs-stat-label">Label</div>
+                            <div class="fs-stat-value" id="fs-album-label">-</div>
+                            <div class="fs-stat-subvalue" id="fs-album-track-count">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fs-top-tracks">
+                    <div class="fs-section-label">Artist Top Tracks</div>
+                    <div class="fs-top-track-list" id="fs-top-track-list"></div>
+                </div>
+                <div class="fs-progress-wrap">
+                    <span class="fs-time" id="fs-time-current">0:00</span>
+                    <div class="fs-progress-bar">
+                        <div class="fs-progress-fill" id="fs-progress-fill"></div>
+                    </div>
+                    <span class="fs-time" id="fs-time-total">0:00</span>
+                </div>
             </div>
-        </div>
-
-        <!-- Fullscreen Progress Bar -->
-        <div class="fullscreen-progress" id="fullscreen-progress">
-            <div class="fullscreen-progress-fill" id="fullscreen-progress-fill"></div>
         </div>
     </div>
 
@@ -693,9 +1170,15 @@
         // Wake Lock API to prevent screen from sleeping
         let wakeLock = null;
 
-        // Artist image tracking
+        // Artist tracking
         let currentArtistId = null;
         let currentArtistImage = null;
+        let currentArtistDetails = null;
+        let currentAlbumId = null;
+        let currentAlbumDetails = null;
+        let currentArtistTopTracks = [];
+        let currentTrackId = null;
+        let trackChangeOverlayTimeout = null;
 
         // Cursor tracking for fullscreen controls
         let cursorTimeout = null;
@@ -947,12 +1430,18 @@
                 const trackUri = data.item.uri;
                 const trackId = data.item.id;
                 const artistId = data.item.artists[0]?.id; // Get first artist ID
+                const albumId = data.item.album?.id;
+                const totalAlbumTracks = data.item.album?.total_tracks;
 
                 // If in fullscreen and artist changed, update background
                 const artistChanged = currentArtistId && artistId && artistId !== currentArtistId;
+                const albumChanged = currentAlbumId && albumId && albumId !== currentAlbumId;
+                const trackChanged = currentTrackId && trackId && currentTrackId !== trackId;
                 
                 // Store artist ID for fullscreen mode
                 currentArtistId = artistId;
+                currentAlbumId = albumId;
+                currentTrackId = trackId;
 
                 // Update page title with currently playing song
                 document.title = isPlaying 
@@ -982,9 +1471,12 @@
                     // Set background image (will be overridden in fullscreen mode)
                     if (!document.fullscreenElement) {
                         document.getElementById('background-image').style.backgroundImage = `url(${albumArt})`;
+                    } else {
+                        // In fullscreen: background is album art (heavy blur), artist img in panel
+                        document.getElementById('background-image').style.backgroundImage = `url(${albumArt})`;
                     }
-                    // Update fullscreen info
-                    document.getElementById('fullscreen-album-art').src = albumArt;
+                    // Update fullscreen album art
+                    document.getElementById('fs-album-art-img').src = albumArt;
                 } else {
                     if (!document.fullscreenElement) {
                         document.getElementById('background-image').style.backgroundImage = 'none';
@@ -992,11 +1484,18 @@
                 }
 
                 // Update fullscreen text info
-                document.getElementById('fullscreen-song-name').textContent = songName;
-                document.getElementById('fullscreen-artist-name').textContent = artistName;
+                document.getElementById('fs-song-name').textContent = songName;
+                document.getElementById('fs-artist-name').textContent = artistName;
+                document.getElementById('fs-album-name').textContent = albumName || '';
+                if (durationMs) {
+                    document.getElementById('fs-time-total').textContent = formatTime(durationMs);
+                }
+                document.getElementById('fs-album-track-count').textContent = totalAlbumTracks
+                    ? `${totalAlbumTracks} tracks`
+                    : 'Track count unavailable';
 
                 // If in fullscreen and artist changed, update background
-                if (document.fullscreenElement && artistChanged) {
+                if (document.fullscreenElement && (artistChanged || albumChanged)) {
                     await updateFullscreenBackground();
                 }
 
@@ -1004,44 +1503,41 @@
                 if (durationMs) {
                     const progressPercent = (progressMs / durationMs) * 100;
                     document.getElementById('progress-fill').style.width = `${progressPercent}%`;
-                    // Update fullscreen progress bar
-                    const fullscreenProgressFill = document.getElementById('fullscreen-progress-fill');
-                    if (fullscreenProgressFill) {
-                        fullscreenProgressFill.style.width = `${progressPercent}%`;
-                    }
-                    
-                    // Store duration for local updates
+                    document.getElementById('fs-progress-fill').style.width = `${progressPercent}%`;
+                    document.getElementById('fs-time-current').textContent = formatTime(progressMs);
                     document.getElementById('play-pause-button').dataset.durationMs = durationMs;
                 }
+
+                const fullscreenPlayPauseIcon = document.getElementById('fs-play-pause-icon');
+                const fullscreenPlayPauseButton = document.getElementById('fs-play-pause-btn');
 
                 if (isPlaying) {
                     playPauseIcon.classList.remove('fa-play');
                     playPauseIcon.classList.add('fa-pause');
-                    // Update fullscreen controls icon
-                    const fullscreenIcon = document.getElementById('fullscreen-play-pause-icon');
-                    if (fullscreenIcon) {
-                        fullscreenIcon.classList.remove('fa-play');
-                        fullscreenIcon.classList.add('fa-pause');
+                    if (fullscreenPlayPauseIcon) {
+                        fullscreenPlayPauseIcon.classList.remove('fa-play');
+                        fullscreenPlayPauseIcon.classList.add('fa-pause');
                     }
                     startProgressUpdates();
                 } else {
                     playPauseIcon.classList.remove('fa-pause');
                     playPauseIcon.classList.add('fa-play');
-                    // Update fullscreen controls icon
-                    const fullscreenIcon = document.getElementById('fullscreen-play-pause-icon');
-                    if (fullscreenIcon) {
-                        fullscreenIcon.classList.remove('fa-pause');
-                        fullscreenIcon.classList.add('fa-play');
+                    if (fullscreenPlayPauseIcon) {
+                        fullscreenPlayPauseIcon.classList.remove('fa-pause');
+                        fullscreenPlayPauseIcon.classList.add('fa-play');
                     }
                     stopProgressUpdates();
                 }
                 document.getElementById('play-pause-button').dataset.isPlaying = isPlaying ? 'true' : 'false';
-                const fullscreenButton = document.getElementById('fullscreen-play-pause-button');
-                if (fullscreenButton) {
-                    fullscreenButton.dataset.isPlaying = isPlaying ? 'true' : 'false';
+                if (fullscreenPlayPauseButton) {
+                    fullscreenPlayPauseButton.dataset.isPlaying = isPlaying ? 'true' : 'false';
                 }
 
                 document.getElementById('status-message').textContent = `Now controlling: ${songName} by ${artistName}`;
+
+                if (trackChanged && document.fullscreenElement) {
+                    showTrackChangeOverlay(artistName, songName, albumArt);
+                }
 
                 // Update new features
                 generateQRCode(trackUri);
@@ -1059,10 +1555,102 @@
             return `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
 
+        function formatReleaseDate(releaseDate, precision) {
+            if (!releaseDate) return 'Unknown';
+            if (precision === 'year') return releaseDate;
+            if (precision === 'month') {
+                const [year, month] = releaseDate.split('-');
+                return `${year}-${month}`;
+            }
+            return releaseDate;
+        }
+
+        function titleCase(value) {
+            if (!value) return 'Unknown';
+            return value.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+        }
+
+        async function sampleImageGlowColor(imageUrl) {
+            if (!imageUrl) return '29, 185, 84';
+
+            try {
+                const image = new Image();
+                image.crossOrigin = 'anonymous';
+
+                const color = await new Promise((resolve, reject) => {
+                    image.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d', { willReadFrequently: true });
+                        if (!context) {
+                            reject(new Error('Canvas context unavailable'));
+                            return;
+                        }
+
+                        const sampleSize = 24;
+                        canvas.width = sampleSize;
+                        canvas.height = sampleSize;
+                        context.drawImage(image, 0, 0, sampleSize, sampleSize);
+
+                        const { data } = context.getImageData(0, 0, sampleSize, sampleSize);
+                        let red = 0;
+                        let green = 0;
+                        let blue = 0;
+                        let pixels = 0;
+
+                        for (let index = 0; index < data.length; index += 4) {
+                            red += data[index];
+                            green += data[index + 1];
+                            blue += data[index + 2];
+                            pixels += 1;
+                        }
+
+                        const scale = 1 / Math.max(pixels, 1);
+                        resolve(`${Math.round(red * scale)}, ${Math.round(green * scale)}, ${Math.round(blue * scale)}`);
+                    };
+
+                    image.onerror = reject;
+                    image.src = imageUrl;
+                });
+
+                return color;
+            } catch {
+                return '29, 185, 84';
+            }
+        }
+
+        async function showTrackChangeOverlay(artistName, songName, albumArt) {
+            const overlay = document.getElementById('track-change-overlay');
+            const artistEl = document.getElementById('track-change-artist');
+            const songEl = document.getElementById('track-change-song');
+            const artEl = document.getElementById('track-change-art');
+            if (!overlay || !artistEl || !songEl || !artEl) return;
+
+            artistEl.textContent = artistName;
+            songEl.textContent = songName;
+            artEl.src = albumArt || '';
+            overlay.style.setProperty('--track-glow-rgb', await sampleImageGlowColor(albumArt));
+            overlay.classList.remove('visible');
+            document.body.classList.add('track-overlay-active');
+
+            if (trackChangeOverlayTimeout) {
+                clearTimeout(trackChangeOverlayTimeout);
+            }
+
+            requestAnimationFrame(() => {
+                overlay.classList.add('visible');
+            });
+
+            trackChangeOverlayTimeout = setTimeout(() => {
+                overlay.classList.remove('visible');
+                document.body.classList.remove('track-overlay-active');
+            }, 3000);
+        }
+
         // Function to update progress bar locally (between API calls)
         function updateLocalProgress() {
             const progressFill = document.getElementById('progress-fill');
-            const fullscreenProgressFill = document.getElementById('fullscreen-progress-fill');
+            const fsProgressFill = document.getElementById('fs-progress-fill');
+            const fsTimeCurrent = document.getElementById('fs-time-current');
             const button = document.getElementById('play-pause-button');
             const isPlaying = button.dataset.isPlaying === 'true';
             
@@ -1078,9 +1666,8 @@
             if (durationMs > 0) {
                 const progressPercent = Math.min((localProgressMs / durationMs) * 100, 100);
                 progressFill.style.width = `${progressPercent}%`;
-                if (fullscreenProgressFill) {
-                    fullscreenProgressFill.style.width = `${progressPercent}%`;
-                }
+                fsProgressFill.style.width = `${progressPercent}%`;
+                fsTimeCurrent.textContent = formatTime(Math.min(localProgressMs, durationMs));
             }
         }
 
@@ -1282,7 +1869,7 @@
                 await getCurrentlyPlaying();
 
                 // Optional: Set up an interval to refresh the current track automatically (like a real extension status bar)
-                setInterval(getCurrentlyPlaying, 10000); // Refresh every 10 seconds
+                setInterval(getCurrentlyPlaying, 3000); // Refresh every 3 seconds
             } else {
                 document.getElementById('status-message').textContent = "Ready. Click the button to log in.";
                 document.getElementById('auth-section').classList.remove('hidden');
@@ -1305,7 +1892,11 @@
                     // Add fullscreen mode class
                     document.body.classList.add('fullscreen-mode');
                     
-                    // Fetch and set artist background
+                    // Immediately set background to album art
+                    const albumArt = document.getElementById('album-art').src;
+                    if (albumArt) document.getElementById('background-image').style.backgroundImage = `url(${albumArt})`;
+                    
+                    // Fetch and populate artist card
                     await updateFullscreenBackground();
                     
                     // Request wake lock when entering fullscreen
@@ -1378,6 +1969,9 @@
                 fullscreenIcon.classList.add('fa-compress');
                 document.body.classList.add('fullscreen-mode');
                 isFullscreenMode = true;
+                // Immediately set background to album art
+                const albumArtSrc = document.getElementById('album-art').src;
+                if (albumArtSrc) document.getElementById('background-image').style.backgroundImage = `url(${albumArtSrc})`;
                 await updateFullscreenBackground();
                 requestWakeLock();
                 // Show controls initially then hide after 3 seconds
@@ -1436,13 +2030,23 @@
         // Generate QR Code for Spotify track
         async function generateQRCode(trackUri) {
             const qrContainer = document.getElementById('qr-code');
+            const fullscreenQrContainer = document.getElementById('fs-qr-code');
             const spotifyUrl = `https://open.spotify.com/track/${trackUri.split(':')[2]}`;
             
             // Using Google Charts API for QR code generation
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(spotifyUrl)}`;
-            qrContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code">`;
+            if (qrContainer) {
+                qrContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code">`;
+            }
+            if (fullscreenQrContainer) {
+                fullscreenQrContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code">`;
+            }
             
             document.getElementById('qr-container').classList.remove('hidden');
+            const fullscreenQrBlock = document.getElementById('fs-qr-container');
+            if (fullscreenQrBlock) {
+                fullscreenQrBlock.classList.remove('hidden');
+            }
         }
 
         // Show/hide explicit badge
@@ -1455,29 +2059,149 @@
             }
         }
 
-        // Fetch artist details including high-res image
-        async function fetchArtistImage(artistId) {
+        // Fetch artist bio from Last.fm (free, no auth required)
+        async function fetchArtistBio(artistName) {
             try {
-                const artistData = await spotifyApiCall(`/artists/${artistId}`);
-                if (artistData && artistData.images && artistData.images.length > 0) {
-                    const largestImage = artistData.images[0];
-                    return largestImage.url;
-                }
-                return null;
-            } catch (error) {
-                console.error('Failed to fetch artist image:', error);
+                const encoded = encodeURIComponent(artistName);
+                const url = `https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encoded}&api_key=c4b370e3a33bbdc0ec8c57cef7561dda&format=json&lang=en`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const bio = data?.artist?.bio?.summary;
+                if (!bio) return null;
+                // Strip Last.fm "Read more on Last.fm" link at end
+                return bio.replace(/<a[^>]*>.*?<\/a>/gi, '').replace(/\s+$/, '').trim();
+            } catch {
                 return null;
             }
         }
 
-        // Update fullscreen background with artist image
+        // Fetch artist details including high-res image, genres, popularity, followers
+        async function fetchArtistDetails(artistId) {
+            try {
+                const artistData = await spotifyApiCall(`/artists/${artistId}`);
+                if (!artistData) return null;
+                currentArtistDetails = {
+                    name: artistData.name,
+                    imageUrl: artistData.images?.[0]?.url || null,
+                    genres: artistData.genres || [],
+                    followers: artistData.followers?.total || 0,
+                    popularity: artistData.popularity || 0,
+                    spotifyUrl: artistData.external_urls?.spotify || null
+                };
+                return currentArtistDetails;
+            } catch (error) {
+                console.error('Failed to fetch artist details:', error);
+                return null;
+            }
+        }
+
+        async function fetchAlbumDetails(albumId) {
+            try {
+                const albumData = await spotifyApiCall(`/albums/${albumId}?market=from_token`);
+                if (!albumData) return null;
+                currentAlbumDetails = {
+                    name: albumData.name,
+                    releaseDate: albumData.release_date,
+                    releaseDatePrecision: albumData.release_date_precision,
+                    label: albumData.label || 'Label unavailable',
+                    totalTracks: albumData.total_tracks,
+                    albumType: albumData.album_type || 'album'
+                };
+                return currentAlbumDetails;
+            } catch (error) {
+                console.error('Failed to fetch album details:', error);
+                return null;
+            }
+        }
+
+        async function fetchArtistTopTracks(artistId) {
+            try {
+                const topTracksData = await spotifyApiCall(`/artists/${artistId}/top-tracks?market=from_token`);
+                currentArtistTopTracks = (topTracksData?.tracks || []).slice(0, 5).map(track => ({
+                    name: track.name,
+                    durationMs: track.duration_ms,
+                    popularity: track.popularity,
+                    albumName: track.album?.name || ''
+                }));
+                return currentArtistTopTracks;
+            } catch (error) {
+                console.error('Failed to fetch artist top tracks:', error);
+                currentArtistTopTracks = [];
+                return [];
+            }
+        }
+
+        function updateFullscreenArtistDetails() {
+            if (!currentArtistDetails) return;
+            const genresEl = document.getElementById('fs-genres');
+            const bigNameEl = document.getElementById('fs-artist-big-name');
+            const bioEl = document.getElementById('fs-bio');
+            if (bigNameEl) bigNameEl.textContent = currentArtistDetails.name;
+            const topGenres = currentArtistDetails.genres.slice(0, 3);
+            genresEl.innerHTML = topGenres.map(g => `<span class="genre-tag">${g}</span>`).join('');
+            // Bio — fetch async and populate when ready
+            if (bioEl) {
+                bioEl.textContent = '';
+                fetchArtistBio(currentArtistDetails.name).then(bio => {
+                    bioEl.textContent = bio || '';
+                });
+            }
+        }
+
+        function updateFullscreenAlbumDetails() {
+            if (!currentAlbumDetails) return;
+            document.getElementById('fs-album-release').textContent = formatReleaseDate(
+                currentAlbumDetails.releaseDate,
+                currentAlbumDetails.releaseDatePrecision
+            );
+            document.getElementById('fs-album-type').textContent = titleCase(currentAlbumDetails.albumType);
+            document.getElementById('fs-album-label').textContent = currentAlbumDetails.label;
+            document.getElementById('fs-album-track-count').textContent = currentAlbumDetails.totalTracks
+                ? `${currentAlbumDetails.totalTracks} tracks`
+                : 'Track count unavailable';
+        }
+
+        function updateFullscreenTopTracks() {
+            const listEl = document.getElementById('fs-top-track-list');
+            if (!listEl) return;
+            if (!currentArtistTopTracks.length) {
+                listEl.innerHTML = '<div class="fs-top-track-meta">No top tracks available.</div>';
+                return;
+            }
+
+            listEl.innerHTML = currentArtistTopTracks.map((track, index) => `
+                <div class="fs-top-track-item">
+                    <div class="fs-top-track-rank">${index + 1}</div>
+                    <div>
+                        <div class="fs-top-track-name">${track.name}</div>
+                        <div class="fs-top-track-meta">${track.albumName}</div>
+                    </div>
+                    <div class="fs-top-track-meta">${formatTime(track.durationMs)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Update fullscreen background (album art) and artist card
         async function updateFullscreenBackground() {
             if (document.fullscreenElement && currentArtistId) {
-                const artistImage = await fetchArtistImage(currentArtistId);
-                if (artistImage) {
-                    currentArtistImage = artistImage;
-                    document.getElementById('background-image').style.backgroundImage = `url(${artistImage})`;
+                // Set background to album art (blurred) immediately
+                const albumArt = document.getElementById('fs-album-art-img').src;
+                if (albumArt) {
+                    document.getElementById('background-image').style.backgroundImage = `url(${albumArt})`;
                 }
+                // Fetch artist details and populate right panel
+                const details = await fetchArtistDetails(currentArtistId);
+                if (details?.imageUrl) {
+                    currentArtistImage = details.imageUrl;
+                    document.getElementById('fs-artist-img').src = details.imageUrl;
+                }
+                if (currentAlbumId) {
+                    await fetchAlbumDetails(currentAlbumId);
+                }
+                await fetchArtistTopTracks(currentArtistId);
+                updateFullscreenArtistDetails();
+                updateFullscreenAlbumDetails();
+                updateFullscreenTopTracks();
             }
         }
 
