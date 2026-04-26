@@ -176,7 +176,7 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
             position: relative;
             overflow: hidden;
-            transition: all 0.5s ease;
+            transition: box-shadow 0.5s ease;
         }
 
         .album-art-main img {
@@ -538,6 +538,115 @@
             text-transform: uppercase;
         }
 
+        /* ── Ambient Animations ── */
+        @keyframes floatAlbum {
+            0%, 100% { transform: translateY(0px) rotate(-0.5deg); }
+            50% { transform: translateY(-10px) rotate(0.5deg); }
+        }
+
+        @keyframes albumGlowPulse {
+            0%, 100% { box-shadow: 0 24px 60px rgba(0,0,0,0.7), 0 0 40px rgba(var(--track-glow-rgb, 29,185,84), 0.15); }
+            50% { box-shadow: 0 24px 60px rgba(0,0,0,0.7), 0 0 80px rgba(var(--track-glow-rgb, 29,185,84), 0.38); }
+        }
+
+        @keyframes progressShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes kenBurns {
+            0% { transform: scale(1) translate(0, 0); }
+            33% { transform: scale(1.04) translate(-1%, -1%); }
+            66% { transform: scale(1.06) translate(1%, 0.5%); }
+            100% { transform: scale(1) translate(0, 0); }
+        }
+
+        @keyframes eqBar {
+            0%, 100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(1); }
+        }
+
+        @keyframes genreTagPop {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.04); }
+        }
+
+        @keyframes subtleBreath {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.82; }
+        }
+
+        /* Album art float in normal view */
+        .album-art-main {
+            animation: floatAlbum 6s ease-in-out infinite;
+        }
+
+        /* Fullscreen album art glow pulse */
+        .fs-album-wrap {
+            animation: albumGlowPulse 4s ease-in-out infinite;
+        }
+
+        /* Progress fill shimmer */
+        .fs-progress-fill {
+            background: linear-gradient(90deg,
+                #1DB954 0%,
+                #1ed760 40%,
+                rgba(255,255,255,0.55) 50%,
+                #1ed760 60%,
+                #1DB954 100%);
+            background-size: 200% 100%;
+            animation: progressShimmer 2.4s linear infinite;
+        }
+
+        /* Artist photo Ken Burns */
+        .fs-artist-img {
+            animation: kenBurns 22s ease-in-out infinite;
+            transform-origin: center center;
+        }
+
+        /* Genre tags gentle pop */
+        .genre-tag {
+            animation: genreTagPop 3.8s ease-in-out infinite;
+        }
+        .genre-tag:nth-child(2) { animation-delay: 1.2s; }
+        .genre-tag:nth-child(3) { animation-delay: 2.4s; }
+
+        /* Equalizer bars */
+        .eq-bars {
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 14px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .eq-bars span {
+            display: block;
+            width: 3px;
+            height: 100%;
+            background: #1DB954;
+            border-radius: 2px;
+            transform-origin: bottom;
+            animation: eqBar 0.7s ease-in-out infinite alternate;
+        }
+        .eq-bars span:nth-child(2) { animation-delay: 0.18s; animation-duration: 0.9s; }
+        .eq-bars span:nth-child(3) { animation-delay: 0.35s; animation-duration: 0.6s; }
+        .eq-bars span:nth-child(4) { animation-delay: 0.5s; animation-duration: 0.8s; }
+
+        /* Top track row hover lift */
+        .fs-top-track-item {
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .fs-top-track-item:hover {
+            transform: translateX(6px);
+            background: rgba(255,255,255,0.1) !important;
+        }
+
+        /* Vibe signature breath */
+        .vibe-signature {
+            animation: subtleBreath 4s ease-in-out infinite;
+        }
+
         @keyframes trackChangeReveal {
             0% {
                 opacity: 0;
@@ -595,6 +704,34 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+        }
+
+        @keyframes artistShine {
+            0%   { transform: translateX(-160%) skewX(-18deg); opacity: 0; }
+            4%   { opacity: 1; }
+            18%  { transform: translateX(260%) skewX(-18deg); opacity: 0.7; }
+            20%  { opacity: 0; transform: translateX(280%) skewX(-18deg); }
+            100% { transform: translateX(280%) skewX(-18deg); opacity: 0; }
+        }
+
+        .fs-artist-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 45%;
+            height: 100%;
+            background: linear-gradient(
+                105deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.13) 48%,
+                rgba(255, 255, 255, 0.28) 50%,
+                rgba(255, 255, 255, 0.13) 52%,
+                transparent 70%
+            );
+            animation: artistShine 30s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 10;
         }
 
         .fs-qr-container {
@@ -2171,16 +2308,21 @@
                 return;
             }
 
-            listEl.innerHTML = currentArtistTopTracks.map((track, index) => `
+            const currentTrackName = document.getElementById('fs-song-name')?.textContent || '';
+            const eqHtml = `<span class="eq-bars"><span></span><span></span><span></span><span></span></span>`;
+
+            listEl.innerHTML = currentArtistTopTracks.map((track, index) => {
+                const isPlaying = track.name === currentTrackName;
+                return `
                 <div class="fs-top-track-item">
                     <div class="fs-top-track-rank">${index + 1}</div>
                     <div>
-                        <div class="fs-top-track-name">${track.name}</div>
+                        <div class="fs-top-track-name">${track.name}${isPlaying ? eqHtml : ''}</div>
                         <div class="fs-top-track-meta">${track.albumName}</div>
                     </div>
                     <div class="fs-top-track-meta">${formatTime(track.durationMs)}</div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         // Update fullscreen background (album art) and artist card
