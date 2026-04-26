@@ -647,6 +647,17 @@
             animation: subtleBreath 4s ease-in-out infinite;
         }
 
+        @keyframes vibeFlyOut {
+            0%   { opacity: 1;  transform: translateX(0)      scale(1);    filter: blur(0); }
+            40%  { opacity: 0;  transform: translateX(-60px)  scale(0.88); filter: blur(6px); }
+            60%  { opacity: 0;  transform: translateX(60px)   scale(0.88); filter: blur(6px); }
+            100% { opacity: 1;  transform: translateX(0)      scale(1);    filter: blur(0); }
+        }
+
+        .vibe-signature.fly-anim {
+            animation: vibeFlyOut 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
         @keyframes trackChangeReveal {
             0% {
                 opacity: 0;
@@ -1703,11 +1714,15 @@
         function formatReleaseDate(releaseDate, precision) {
             if (!releaseDate) return 'Unknown';
             if (precision === 'year') return releaseDate;
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
             if (precision === 'month') {
                 const [year, month] = releaseDate.split('-');
-                return `${year}-${month}`;
+                return `${months[parseInt(month, 10) - 1]} ${year}`;
             }
-            return releaseDate;
+            const [year, month, day] = releaseDate.split('-');
+            const d = parseInt(day, 10);
+            const suffix = d === 1 || d === 21 || d === 31 ? 'st' : d === 2 || d === 22 ? 'nd' : d === 3 || d === 23 ? 'rd' : 'th';
+            return `${d}${suffix} ${months[parseInt(month, 10) - 1]} ${year}`;
         }
 
         function titleCase(value) {
@@ -2350,6 +2365,18 @@
         }
 
         // Start the application
+        // Vibe signature fly-out/fly-in every 3 minutes
+        setInterval(() => {
+            const sig = document.getElementById('vibe-signature');
+            if (!sig) return;
+            sig.classList.remove('fly-anim');
+            void sig.offsetWidth; // force reflow to restart animation
+            sig.classList.add('fly-anim');
+            sig.addEventListener('animationend', () => {
+                sig.classList.remove('fly-anim');
+            }, { once: true });
+        }, 3 * 60 * 1000);
+
         window.onload = initializeFirebase;
     </script>
 </body>
