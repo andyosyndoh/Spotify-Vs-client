@@ -2073,13 +2073,10 @@
         async function fetchArtistBio(artistName) {
             try {
                 const encoded = encodeURIComponent(artistName);
-                const url = `https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encoded}&api_key=c4b370e3a33bbdc0ec8c57cef7561dda&format=json&lang=en`;
-                const res = await fetch(url);
+                const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`);
+                if (!res.ok) return null;
                 const data = await res.json();
-                const bio = data?.artist?.bio?.summary;
-                if (!bio) return null;
-                // Strip Last.fm "Read more on Last.fm" link at end
-                return bio.replace(/<a[^>]*>.*?<\/a>/gi, '').replace(/\s+$/, '').trim();
+                return data?.extract || null;
             } catch {
                 return null;
             }
@@ -2149,13 +2146,8 @@
             if (bigNameEl) bigNameEl.textContent = currentArtistDetails.name;
             const topGenres = currentArtistDetails.genres.slice(0, 3);
             genresEl.innerHTML = topGenres.map(g => `<span class="genre-tag">${g}</span>`).join('');
-            // Bio — fetch async and populate when ready
-            if (bioEl) {
-                bioEl.textContent = '';
-                fetchArtistBio(currentArtistDetails.name).then(bio => {
-                    bioEl.textContent = bio || '';
-                });
-            }
+            // Bio disabled — Wikipedia results can be inaccurate
+            if (bioEl) bioEl.textContent = '';
         }
 
         function updateFullscreenAlbumDetails() {
